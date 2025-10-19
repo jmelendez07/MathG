@@ -17,7 +17,8 @@ return [
     'sasl' => [
         'mechanisms' => env('KAFKA_MECHANISMS', 'PLAINTEXT'),
         'username' => env('KAFKA_USERNAME', null),
-        'password' => env('KAFKA_PASSWORD', null)
+        'password' => env('KAFKA_PASSWORD', null),
+        'ssl' => env('KAFKA_SSL', false),
     ],
 
     /*
@@ -59,7 +60,6 @@ return [
      */
     'debug' => env('KAFKA_DEBUG', false),
 
-
     /*
      | The sleep time in milliseconds that will be used when retrying flush
      */
@@ -81,7 +81,7 @@ return [
     'cache_driver' => env('KAFKA_CACHE_DRIVER', env('CACHE_DRIVER', env('CACHE_STORE', 'database'))),
 
     /*
-     | Kafka message id key name
+     | Kafka topics
      */
-    'message_id_key' => env('MESSAGE_ID_KEY', 'laravel-kafka::message-id'),
+    'log_topic' => env('KAFKA_LOG_TOPIC', 'user-logs'),
 ];

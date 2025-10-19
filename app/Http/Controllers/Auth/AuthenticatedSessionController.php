@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Traits\LogsUserActivity;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -13,9 +14,8 @@ use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Show the login page.
-     */
+    use LogsUserActivity;
+
     public function create(Request $request): Response
     {
         return Inertia::render('auth/login', [
@@ -24,30 +24,56 @@ class AuthenticatedSessionController extends Controller
         ]);
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
+        $startTime = microtime(true);
         $request->authenticate();
         $request->session()->regenerate();
+        $user = Auth::user();
+
+        $this->logActivity(
+            $request,
+            'Nuevo inicio de sesión',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         if (Auth::user()->hasRole('administrador')) {
             return redirect()->intended(route('dashboard'));
         } else if (Auth::user()->hasRole('docente')) {
             return redirect()->intended(route('rooms.index'));
+        } else {
+            return redirect()->intended(route('heroes.options'));
         }
-
-        return redirect()->intended(route('heroes.options'));
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        $startTime = microtime(true);
+        $user = Auth::user();
 
+        if ($user) {
+            $this->logActivity(
+                $request,
+                'Cierre de sesión',
+                ['user_id' => $user->id],
+                [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->roles->pluck('name')->first(),
+                    'date' => now()->toDateTimeString(),
+                ],
+                $startTime
+            );
+        }
+
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

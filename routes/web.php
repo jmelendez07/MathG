@@ -16,6 +16,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\StageController;
 use App\Http\Controllers\StageVectorPointController;
+use App\Http\Controllers\UserLogController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -65,6 +66,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('heroes', HeroController::class)->names('heroes');
         Route::resource('lugares', StageController::class)->names('stages');
         Route::post('lugares/{stageId}/puntos-vectoriales/sync', [StageVectorPointController::class, 'syncMany'])->name('stages.points.sync-many');
+        Route::get('monitoreo', [UserLogController::class, 'index'])->name('logs.index');
+        Route::get('monitoreo/usuario/{id}', [UserLogController::class, 'user'])->name('logs.user');
     });
 });
 

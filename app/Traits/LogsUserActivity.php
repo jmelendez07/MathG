@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use App\Services\KafkaLogProducerService;
+use App\Jobs\SendKafkaLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,27 +16,24 @@ trait LogsUserActivity
         float $startTime = null
     ): void {
         $executionTime = $startTime ? round((microtime(true) - $startTime) * 1000, 2) : null;
+        $topic = config('kafka.log_topic', 'user-logs');
 
         $logData = [
             'user_id' => Auth::id(),
             'action' => $action,
-            'controller' => static::class,
-            'method' => debug_backtrace()[1]['function'] ?? 'unknown',
             'route' => $request->route()?->getName() ?? $request->path(),
-            'request_data' => $this->sanitizeRequestData($request->all()),
-            'response_data' => $this->sanitizeResponseData($response),
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'status_code' => $this->getStatusCode($response),
             'execution_time' => $executionTime,
             'metadata' => array_merge([
                 'referer' => $request->header('referer'),
+                'url' => $request->fullUrl(),
                 'method' => $request->method(),
-            ], $additionalMetadata),
-            'logged_at' => now(),
+            ], $additionalMetadata)
         ];
 
-        app(KafkaLogProducerService::class)->sendLog($logData);
+        SendKafkaLog::dispatch($topic, $logData, 'user-' . (Auth::id() ?? 'guest'));
     }
 
     private function sanitizeRequestData(array $data): array
@@ -58,12 +55,12 @@ trait LogsUserActivity
             return null;
         }
 
-        if (method_exists($response, 'getData')) {
-            return (array) $response->getData();
-        }
-
         if (is_array($response)) {
             return $response;
+        }
+
+        if (is_object($response) && method_exists($response, 'getData')) {
+            return (array) $response->getData();
         }
 
         return null;
@@ -71,12 +68,18 @@ trait LogsUserActivity
 
     private function getStatusCode($response): ?int
     {
-        if (method_exists($response, 'status')) {
-            return $response->status();
+        if (is_array($response)) {
+            return 200;
         }
 
-        if (method_exists($response, 'getStatusCode')) {
-            return $response->getStatusCode();
+        if (is_object($response)) {
+            if (method_exists($response, 'status')) {
+                return $response->status();
+            }
+
+            if (method_exists($response, 'getStatusCode')) {
+                return $response->getStatusCode();
+            }
         }
 
         return 200;

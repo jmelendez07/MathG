@@ -69,7 +69,6 @@ const exitStyle = new TextStyle({
 });
 
 export default function GalaxiesShow({ galaxy, unlocked_planets, unlocked_stages }: IGalaxiesShowProps) {
-    console.log('Unlocked stages:', unlocked_stages);
     const [isClient, setIsClient] = useState(false);
     const [canvasSize, setCanvasSize] = useState(calculateCanvasSize());
     const [bgTexture, setBgTexture] = useState<Texture | null>(null);

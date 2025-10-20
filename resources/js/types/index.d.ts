@@ -46,6 +46,7 @@ export interface User {
     roles: Role[];
     created_at: string;
     updated_at: string;
+    logs?: Log[];
     [key: string]: unknown;
 }
 

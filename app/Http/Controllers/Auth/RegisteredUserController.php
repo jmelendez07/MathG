@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Traits\LogsUserActivity;
 use App\Http\Controllers\Controller;
 use App\Models\Hero;
 use App\Models\Level;
@@ -19,6 +20,8 @@ use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
+    use LogsUserActivity;
+
     /**
      * Show the registration page.
      */
@@ -39,6 +42,8 @@ class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+        $startTime = microtime(true);
 
         $user = User::create([
             'name' => $request->name,
@@ -78,12 +83,25 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
+        $this->logActivity(
+            $request,
+            'Nuevo usuario registrado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         if (Auth::user()->hasRole('administrador')) {
             return redirect()->intended(route('dashboard'));
         } else if (Auth::user()->hasRole('docente')) {
             return redirect()->intended(route('rooms.index'));
+        } else {
+            return redirect()->intended(route('gameplay.index'));
         }
-
-        return redirect()->intended(route('gameplay.index'));
     }
 }

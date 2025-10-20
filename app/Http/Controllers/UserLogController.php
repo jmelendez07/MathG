@@ -11,7 +11,7 @@ class UserLogController extends Controller
 {
     public function index()
     {
-        $logs = UserLog::with(['user'])->orderByDesc('created_at')->take(10)->get();
+        $logs = UserLog::with(['user'])->orderByDesc('created_at')->take(20)->get();
         $logsCount = UserLog::count();
         
         return Inertia::render('dashboard/logs/index', [

@@ -18,10 +18,12 @@ import {
     DoorOpen,
     Ban,
     NotebookPen,
+    Zap,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEcho } from "@laravel/echo-react";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -46,9 +48,24 @@ interface GroupedLogs {
     };
 }
 
-export default function LogsIndex({ logs, logsCount }: ILogsIndexProps) {
+interface EchoLogEvent {
+    log: Log;
+}
+
+export default function LogsIndex({ logs: initialLogs, logsCount }: ILogsIndexProps) {
+    const [logs, setLogs] = useState<Log[]>(initialLogs);
     const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
     const [searchTerm, setSearchTerm] = useState("");
+
+    useEcho(
+        "log.stream",
+        ".user.activity.streamed",
+        (e: EchoLogEvent) => {
+            if (!e.log || !e.log.user) return;
+            e.log.is_broadcasted = true;
+            setLogs((prevLogs) => [e.log, ...prevLogs]);
+        },
+    );
 
     const groupedLogs: GroupedLogs = logs.reduce((acc, log) => {
         const userId = log.user_id || 'guest';
@@ -59,16 +76,27 @@ export default function LogsIndex({ logs, logsCount }: ILogsIndexProps) {
             };
         }
         acc[userId].logs.push(log);
+
         return acc;
     }, {} as GroupedLogs);
 
     const toggleUser = (userId: string) => {
         const newExpanded = new Set(expandedUsers);
+        
         if (newExpanded.has(userId)) {
             newExpanded.delete(userId);
         } else {
             newExpanded.add(userId);
+        } 
+
+        if (logs.some(log => log.user_id === userId && log.is_broadcasted)) {
+            setLogs((prevLogs) => 
+                prevLogs.map(log => 
+                    log.user_id === userId ? { ...log, is_broadcasted: false } : log
+                )
+            );
         }
+
         setExpandedUsers(newExpanded);
     };
 
@@ -162,8 +190,6 @@ export default function LogsIndex({ logs, logsCount }: ILogsIndexProps) {
                                 const lastLog = userLogs[0];
                                 const isFirst = index === 0;
                                 const isLast = index === Object.entries(groupedLogs).length - 1;
-                                
-                                // Verificar si el hermano anterior está expandido
                                 const previousUserId = index > 0 ? Object.keys(groupedLogs)[index - 1] : null;
                                 const isPreviousExpanded = previousUserId ? expandedUsers.has(previousUserId) : false;
 
@@ -209,7 +235,7 @@ export default function LogsIndex({ logs, logsCount }: ILogsIndexProps) {
                                                         {user?.name || 'Usuario Invitado'}
                                                     </h3>
                                                     <span className="px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-full">
-                                                        {userLogs.length} {userLogs.length === 1 ? 'actividad' : 'actividades'}
+                                                        {userLogs.length === 1 ? 'última actividad' : `últimas ${userLogs.length} actividades`}
                                                     </span>
                                                 </div>
                                                 <p className="text-xs text-gray-500 mt-0.5">
@@ -218,6 +244,12 @@ export default function LogsIndex({ logs, logsCount }: ILogsIndexProps) {
                                             </div>
 
                                             <div className="flex items-center gap-6 text-sm text-gray-500">
+                                                {userLogs.some(log => log.is_broadcasted) && (
+                                                    <div className="flex items-center gap-1 bg-blue-400 text-white px-2 py-0.5 rounded-full">
+                                                        <Zap className="w-4 h-4" />
+                                                        <span>Nuevo</span>
+                                                    </div>
+                                                )}
                                                 <div className="flex items-center gap-2">
                                                     <Activity className="w-4 h-4" />
                                                     <span>{lastLog.action}</span>

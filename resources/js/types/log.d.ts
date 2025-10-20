@@ -13,6 +13,7 @@ export default interface Log {
     created_at: string;
     updated_at: string;
     user?: User;
+    is_broadcasted?: boolean;
 }
 
 interface Metadata {

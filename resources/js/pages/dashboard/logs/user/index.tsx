@@ -4,70 +4,32 @@ import { Head } from "@inertiajs/react";
 import { useState, useMemo, useEffect } from "react";
 import {
     ReactFlow,
-    MiniMap,
-    Controls,
-    Background,
     useNodesState,
     useEdgesState,
     Node,
     Edge,
-    BackgroundVariant,
     MarkerType,
     Position,
-    useReactFlow,
 } from '@xyflow/react';
 import { Activity } from "lucide-react";
 import '@xyflow/react/dist/style.css';
 import LogNode, { getLogActionColor } from "@/components/dashboard/logs/flow/node";
+import { useEcho } from "@laravel/echo-react";
+import Log from "@/types/log";
+import FlowContent from "@/components/dashboard/logs/flow/content";
 
 
 interface IUserLogsIndexProps {
     user: User;
 }
 
-function FlowContent({ user, nodes }: { 
-    user: User;
-    nodes: Node[];
-}) {
-    const { fitView } = useReactFlow();
-
-    // ✅ Enfocar solo los últimos 3 nodos
-    useEffect(() => {
-        if (nodes.length > 0) {
-            const lastThreeNodes = nodes.slice(-3);
-            const lastThreeIds = lastThreeNodes.map(node => node.id);
-
-            setTimeout(() => {
-                fitView({
-                    nodes: lastThreeIds.map(id => ({ id })), // ✅ Esto está correcto
-                    duration: 800,
-                    padding: 0.3,
-                    minZoom: 0.8,
-                    maxZoom: 1.2,
-                });
-            }, 100);
-        }
-    }, [fitView]); // ✅ Cambio: Solo ejecutar una vez al montar
-
-    return (
-        <>
-            <Controls />
-            <MiniMap 
-                nodeColor={(node) => {
-                    const log = (user.logs || []).find(l => l.id === node.id);
-                    if (!log) return '#c084fc';
-                    const colors = getLogActionColor(log);
-                    return colors.border;
-                }}
-                maskColor="rgba(168, 85, 247, 0.1)"
-            />
-            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-        </>
-    );
+interface EchoLogEvent {
+    log: Log;
 }
 
 export default function UserLogsIndex({ user }: IUserLogsIndexProps) {
     
+    const [logs, setLogs] = useState<Log[]>(user.logs || []);
     const [breadcrumbs] = useState<BreadcrumbItem[]>([
         {
             title: 'Panel de Control',
@@ -83,10 +45,20 @@ export default function UserLogsIndex({ user }: IUserLogsIndexProps) {
         }
     ]);
 
-    const { initialNodes, initialEdges } = useMemo(() => {
-        if (!user.logs || user.logs.length === 0) return { initialNodes: [], initialEdges: [] };
+    useEcho(
+        `log.stream.${user.id}`,
+        ".user.activity.streamed",
+        (e: EchoLogEvent) => {
+            if (!e.log || !e.log.user) return;
+            e.log.is_broadcasted = true;
+            setLogs((prevLogs) => [e.log, ...prevLogs]);
+        },
+    );
 
-        const sortedLogs = [...user.logs].reverse();
+    const { initialNodes, initialEdges } = useMemo(() => {
+        if (!logs || logs.length === 0) return { initialNodes: [], initialEdges: [] };
+
+        const sortedLogs = [...logs].reverse();
 
         const nodes: Node[] = sortedLogs.map((log, index) => {
             const colors = getLogActionColor(log);
@@ -140,7 +112,7 @@ export default function UserLogsIndex({ user }: IUserLogsIndexProps) {
         }));
 
         return { initialNodes: nodes, initialEdges: edges };
-    }, [user.logs]);
+    }, [logs]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
@@ -191,11 +163,11 @@ export default function UserLogsIndex({ user }: IUserLogsIndexProps) {
                                 Actividades de {user.name}
                             </h1>
                             <p className="text-sm text-gray-600">
-                                {user.email} • {user.logs?.length || 0} {user.logs?.length === 1 ? 'actividad' : 'actividades'}
+                                {user.email} • {logs?.length || 0} {logs?.length === 1 ? 'actividad' : 'actividades'}
                             </p>
                         </div>
                     </div>
-                    {user.logs && user.logs.length > 0 ? (
+                    {logs && logs.length > 0 ? (
                         <ReactFlow
                             nodes={nodes}
                             edges={edges}
@@ -207,7 +179,7 @@ export default function UserLogsIndex({ user }: IUserLogsIndexProps) {
                             fitView={false}
                             attributionPosition="bottom-left"
                         >
-                            <FlowContent 
+                            <FlowContent
                                 user={user} 
                                 nodes={nodes}
                             />

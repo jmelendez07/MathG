@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Events\UserActivityStreamed;
 use App\Models\UserLog;
 use Illuminate\Console\Command;
 use RdKafka\Conf;
@@ -103,6 +104,10 @@ class ConsumeUserLogs extends Command
                     ]
                 ),
             ]);
+
+            $userLog->load('user');
+
+            event(new UserActivityStreamed($userLog));
 
             Log::info('✅ Log de Kafka guardado en BD', [
                 'log_id' => $userLog->id,

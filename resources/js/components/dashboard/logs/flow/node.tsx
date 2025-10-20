@@ -1,4 +1,4 @@
-import { Activity, Ban, Clock, DoorOpen, Key, Monitor, NotebookPen, TrendingUp } from "lucide-react";
+import { Activity, Ban, Clock, DoorOpen, Key, Monitor, NotebookPen, TrendingUp, Zap } from "lucide-react";
 import Log from "@/types/log";
 
 interface LogNodeProps {
@@ -35,7 +35,18 @@ export default function LogNode({ log }: LogNodeProps) {
     };
 
     return (
-        <div className="px-4 py-3 w-full">
+        <div className="relative px-4 py-3 w-full">
+            {log.is_broadcasted && (
+                <div className="
+                    absolute left-[12px] -top-[calc(2rem+2px)] h-[2rem] w-auto px-2 flex items-center gap-1 
+                    text-white bg-blue-400 border-blue-500 border-2 rounded-t-[12px]
+                    border-b-0
+                "
+                >
+                    <Zap className="w-4 h-4" />
+                    <span className="font-semibold">Nueva Actividad</span>
+                </div>
+            )}
             <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg flex-shrink-0" style={{ color: colors.text }}>
                     {
@@ -49,7 +60,6 @@ export default function LogNode({ log }: LogNodeProps) {
                     {log.action}
                 </span>
             </div>
-            
             <div className="space-y-1 text-xs text-gray-600">
                 <div className="flex items-center gap-2">
                     <Clock className="w-3 h-3 flex-shrink-0" />

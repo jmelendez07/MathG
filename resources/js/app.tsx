@@ -5,11 +5,17 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import { configureEcho } from '@laravel/echo-react';
+import { Toaster } from "@/components/ui/sonner"
 
 configureEcho({
     broadcaster: 'pusher',
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    forceTLS: import.meta.env.VITE_PUSHER_SCHEME === 'https',
+    wsHost: import.meta.env.VITE_PUSHER_HOST,
+    wsPort: import.meta.env.VITE_PUSHER_PORT,
+    wssPort: import.meta.env.VITE_PUSHER_PORT
 });
-import { Toaster } from "@/components/ui/sonner"
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

@@ -1,20 +1,20 @@
-import { UI } from "@/components/ui/pixi";
-import { HeroUI } from "@/components/ui/pixi/hero";
-import { EnemyUI } from "@/components/ui/pixi/enemy";
-import { Combat } from "@/components/combat/combat";
-import { KeyMap } from "@/components/types/key";
-import { Directions } from "@/enums/hero-directions";
-import { ALLOWED_KEYS, getPolygonCentroid, HERO_FRAME_SIZE, isPointInPolygon, MAP_SCALE } from "@/lib/utils";
-import { usePage, router, } from "@inertiajs/react";
-import { SharedData } from "@/types";
+import { Combat } from '@/components/combat/combat';
+import { KeyMap } from '@/components/types/key';
+import { UI } from '@/components/ui/pixi';
+import { EnemyUI } from '@/components/ui/pixi/enemy';
+import { HeroUI } from '@/components/ui/pixi/hero';
+import { Directions } from '@/enums/hero-directions';
+import { ALLOWED_KEYS, getPolygonCentroid, HERO_FRAME_SIZE, isPointInPolygon, MAP_SCALE } from '@/lib/utils';
+import { useTeam } from '@/Providers/TeamProvider';
+import { SharedData } from '@/types';
+import Card from '@/types/card';
+import Enemy from '@/types/enemy';
+import { Stage } from '@/types/planet';
 import type { Page as InertiaPage } from '@inertiajs/core';
-import { useTeam } from "@/Providers/TeamProvider";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Stage } from "@/types/planet";
-import Enemy from "@/types/enemy";
-import Card from "@/types/card";
-import { Assets, Container, Sprite, Texture, Ticker } from "pixi.js";
-import { extend, useTick } from "@pixi/react";
+import { router, usePage } from '@inertiajs/react';
+import { extend, useTick } from '@pixi/react';
+import { Assets, Container, Sprite, Texture, Ticker } from 'pixi.js';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface ExperienceProps {
     stage: Stage;
@@ -22,10 +22,10 @@ interface ExperienceProps {
     cards: Card[];
 }
 
-extend({ Sprite, Container, Text});
+extend({ Sprite, Container, Text });
 
 export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
-    const { currentHero, teamHeroes, updateHeroHealth, textures } = useTeam();
+    const { currentHero, teamHeroes, updateHeroHealth, changeCurrentHero, textures } = useTeam();
     const { auth } = usePage<SharedData>().props;
     const [stageTexture, setStageTexture] = useState<Texture | null>(null);
     const [keys, setKeys] = useState<KeyMap>({});
@@ -43,15 +43,15 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
     const [currentUserXp, setCurrentUserXp] = useState<number>(auth.user?.profile?.total_xp ?? 0);
 
     const polygonPoints: [number, number][] = stage.points
-        .map(p => [p.x, p.y] as [number, number])
-        .filter(arr => arr.length === 2 && arr.every(Number.isFinite));
+        .map((p) => [p.x, p.y] as [number, number])
+        .filter((arr) => arr.length === 2 && arr.every(Number.isFinite));
 
     const centroid = getPolygonCentroid(polygonPoints);
 
     const generateRandomPosition = useCallback(
         (index: number) => ({
-            x: 2500 + (index * 200),
-            y: 1000 + (index * 1000),
+            x: 2500 + index * 200,
+            y: 1000 + index * 1000,
         }),
         [],
     );
@@ -78,125 +78,130 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
             y: Math.max(minY, Math.min(calculatedY, maxY - 50)),
         };
     }, []);
-    
-    const keysLoop = useCallback((delta: number) => {
-        const sprite = spriteRef.current;
-        const camera = cameraRef.current;
-        if (!sprite || !camera) return;
 
-        const controlPressed = keys[ALLOWED_KEYS[4]];
-        const canRun = runTimeLeft > 0 && cooldownLeft <= 0;
-        const isTryingToRun = controlPressed && canRun;
+    const keysLoop = useCallback(
+        (delta: number) => {
+            const sprite = spriteRef.current;
+            const camera = cameraRef.current;
+            if (!sprite || !camera) return;
 
-        const speed = isTryingToRun ? 10 : 5;
+            const controlPressed = keys[ALLOWED_KEYS[4]];
+            const canRun = runTimeLeft > 0 && cooldownLeft <= 0;
+            const isTryingToRun = controlPressed && canRun;
 
-        if (isTryingToRun) {
-            setIsRunning(true);
-            setRunTimeLeft((prev) => Math.max(0, prev - delta / 60));
-        } else {
-            if (isRunning) {
-                setIsRunning(false);
-                if (runTimeLeft <= 0) {
-                    setCooldownLeft(5);
-                }
-            }
-        }
+            const speed = isTryingToRun ? 10 : 5;
 
-        if (cooldownLeft > 0 && !isTryingToRun) {
-            setCooldownLeft((prev) => {
-                if (prev > 0) {
-                    const next = Math.max(0, prev - delta / 60);
-                    if (next === 0) {
-                        setRunTimeLeft(5);
+            if (isTryingToRun) {
+                setIsRunning(true);
+                setRunTimeLeft((prev) => Math.max(0, prev - delta / 60));
+            } else {
+                if (isRunning) {
+                    setIsRunning(false);
+                    if (runTimeLeft <= 0) {
+                        setCooldownLeft(5);
                     }
-                    return next;
                 }
-                return prev;
-            });
-        }
-
-        let newX = sprite.x;
-        let newY = sprite.y;
-        let newDirection : Directions | null = null;
-
-        if (keys[ALLOWED_KEYS[0]]) { // W
-            newY -= speed;
-            newDirection = Directions.UP;
-        }
-
-        if (keys[ALLOWED_KEYS[1]]) { // A
-            newX -= speed;
-            newDirection = Directions.LEFT;
-        }
-
-        if (keys[ALLOWED_KEYS[2]]) { // S
-            newY += speed;
-            newDirection = Directions.DOWN;
-        }
-
-        if (keys[ALLOWED_KEYS[3]]) { // D
-            newX += speed;
-            newDirection = Directions.RIGHT;
-        }
-
-        if (newDirection) {
-            setDirection(newDirection);
-        }
-
-        const spriteLeftX = (newX - sprite.width / 2) / MAP_SCALE;
-        const spriteRightX = (newX + sprite.width / 2) / MAP_SCALE;
-        const spriteTopY = (newY - sprite.height / 2) / MAP_SCALE;
-        const spriteBottomY = (newY + sprite.height / 2) / MAP_SCALE;
-
-        const allInside = (
-            isPointInPolygon(spriteLeftX, newY / MAP_SCALE, polygonPoints) &&
-            isPointInPolygon(spriteRightX, newY / MAP_SCALE, polygonPoints) &&
-            isPointInPolygon(newX / MAP_SCALE, spriteTopY, polygonPoints) &&
-            isPointInPolygon(newX / MAP_SCALE, spriteBottomY, polygonPoints)
-        );
-
-        const heroSize = HERO_FRAME_SIZE * 2;
-        const enemySize = 64 * 2;
-        const collisionRadius = (heroSize + enemySize) / 4;
-        const interactionRadius = collisionRadius * 1.5;
-
-        let closestEnemy: Enemy | null = null;
-        let minDistance = interactionRadius;
-
-        enemies.forEach(enemy => {
-            if (!enemy.map_position) return;
-
-            const dx = newX - enemy.map_position.x;
-            const dy = newY - enemy.map_position.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestEnemy = enemy;
             }
-        });
 
-        setNearbyEnemy(closestEnemy);
+            if (cooldownLeft > 0 && !isTryingToRun) {
+                setCooldownLeft((prev) => {
+                    if (prev > 0) {
+                        const next = Math.max(0, prev - delta / 60);
+                        if (next === 0) {
+                            setRunTimeLeft(5);
+                        }
+                        return next;
+                    }
+                    return prev;
+                });
+            }
 
-        const collidesWithEnemy = enemies.some(enemy => {
-            if (!enemy.map_position) return false;
+            let newX = sprite.x;
+            let newY = sprite.y;
+            let newDirection: Directions | null = null;
 
-            const dx = newX - enemy.map_position.x;
-            const dy = newY - enemy.map_position.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (keys[ALLOWED_KEYS[0]]) {
+                // W
+                newY -= speed;
+                newDirection = Directions.UP;
+            }
 
-            return distance < collisionRadius;
-        });
+            if (keys[ALLOWED_KEYS[1]]) {
+                // A
+                newX -= speed;
+                newDirection = Directions.LEFT;
+            }
 
-        if (allInside && !collidesWithEnemy) {
-            sprite.x = newX;
-            sprite.y = newY;
-        }
+            if (keys[ALLOWED_KEYS[2]]) {
+                // S
+                newY += speed;
+                newDirection = Directions.DOWN;
+            }
 
-        camera.x = (window.innerWidth / 2) - sprite.x;
-        camera.y = (window.innerHeight / 2) - sprite.y;
+            if (keys[ALLOWED_KEYS[3]]) {
+                // D
+                newX += speed;
+                newDirection = Directions.RIGHT;
+            }
 
-    }, [keys, polygonPoints, isRunning, runTimeLeft, cooldownLeft, enemies]);
+            if (newDirection) {
+                setDirection(newDirection);
+            }
+
+            const spriteLeftX = (newX - sprite.width / 2) / MAP_SCALE;
+            const spriteRightX = (newX + sprite.width / 2) / MAP_SCALE;
+            const spriteTopY = (newY - sprite.height / 2) / MAP_SCALE;
+            const spriteBottomY = (newY + sprite.height / 2) / MAP_SCALE;
+
+            const allInside =
+                isPointInPolygon(spriteLeftX, newY / MAP_SCALE, polygonPoints) &&
+                isPointInPolygon(spriteRightX, newY / MAP_SCALE, polygonPoints) &&
+                isPointInPolygon(newX / MAP_SCALE, spriteTopY, polygonPoints) &&
+                isPointInPolygon(newX / MAP_SCALE, spriteBottomY, polygonPoints);
+
+            const heroSize = HERO_FRAME_SIZE * 2;
+            const enemySize = 64 * 2;
+            const collisionRadius = (heroSize + enemySize) / 4;
+            const interactionRadius = collisionRadius * 1.5;
+
+            let closestEnemy: Enemy | null = null;
+            let minDistance = interactionRadius;
+
+            enemies.forEach((enemy) => {
+                if (!enemy.map_position) return;
+
+                const dx = newX - enemy.map_position.x;
+                const dy = newY - enemy.map_position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestEnemy = enemy;
+                }
+            });
+
+            setNearbyEnemy(closestEnemy);
+
+            const collidesWithEnemy = enemies.some((enemy) => {
+                if (!enemy.map_position) return false;
+
+                const dx = newX - enemy.map_position.x;
+                const dy = newY - enemy.map_position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                return distance < collisionRadius;
+            });
+
+            if (allInside && !collidesWithEnemy) {
+                sprite.x = newX;
+                sprite.y = newY;
+            }
+
+            camera.x = window.innerWidth / 2 - sprite.x;
+            camera.y = window.innerHeight / 2 - sprite.y;
+        },
+        [keys, polygonPoints, isRunning, runTimeLeft, cooldownLeft, enemies],
+    );
 
     const updateUserProfileLevel = async (newTotalXp: number) => {
         try {
@@ -213,7 +218,7 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
                             setCurrentUserXp(updatedUser.profile.total_xp);
                         }
                     },
-                    onError: (errors) => {
+                    onError: () => {
                         setCurrentUserXp(currentUserXp);
                     },
                     preserveState: true,
@@ -239,7 +244,7 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
     };
 
     const lose = () => {
-        teamHeroes.forEach(hero => {
+        teamHeroes.forEach((hero) => {
             const newHealth = Math.floor(hero.health * 0.5);
             updateHeroHealth(hero.id, newHealth);
         });
@@ -255,14 +260,22 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
     };
 
     useEffect(() => {
-        Assets.load(stage.image_url)
-            .then((result) => {
-                setStageTexture(result);
-            });
+        Assets.load(stage.image_url).then((result) => {
+            setStageTexture(result);
+        });
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (inCombat) {
                 handleBlur();
+                return;
+            }
+
+            // Añadir el manejo de teclas numéricas para cambiar héroe
+            if (['Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(event.code)) {
+                const heroIndex = parseInt(event.key) - 1;
+                if (heroIndex >= 0 && heroIndex < teamHeroes.length) {
+                    changeCurrentHero(heroIndex);
+                }
                 return;
             }
 
@@ -298,11 +311,13 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
         };
 
         if (initEnemies.length > 0) {
-            setEnemies(initEnemies.map((enemy, index) => ({
-                ...enemy,
-                map_position: generateRandomPosition(index),
-                combat_position: generateRandomCombatPosition(index)
-            })));
+            setEnemies(
+                initEnemies.map((enemy, index) => ({
+                    ...enemy,
+                    map_position: generateRandomPosition(index),
+                    combat_position: generateRandomCombatPosition(index),
+                })),
+            );
         }
 
         window.addEventListener('keydown', handleKeyDown);
@@ -317,8 +332,7 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
 
     useTick((ticker: Ticker) => keysLoop(ticker.deltaTime));
 
-    return ((inCombat && combatEnemy) 
-    ? (
+    return inCombat && combatEnemy ? (
         <Combat
             team={teamHeroes}
             teamTextures={textures}
@@ -335,35 +349,25 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
             <UI stage={stage} />
             <pixiContainer ref={cameraRef} sortableChildren={true}>
                 <HeroUI
-                    spriteRef={spriteRef} 
-                    isMoving={Object.values(keys).some(v => v)}
+                   
+                    spriteRef={spriteRef}
+                    isMoving={Object.values(keys).some((v) => v)}
                     isRunning={isRunning}
                     direction={direction}
-                    x={centroid.x} y={centroid.y} 
+                    x={centroid.x}
+                    y={centroid.y}
                 />
-                { enemies.map(enemy => (
-                    <EnemyUI
-                        key={enemy.id}
-                        enemy={enemy}
-                        showInteraction={nearbyEnemy?.id === enemy.id}
-                    />
-                )) }
-                { stageTexture && (
-                    <pixiSprite 
-                        texture={stageTexture}
-                        x={0}
-                        y={0}
-                        zIndex={0}
-                        scale={MAP_SCALE}
-                    />
-                ) }
+                {enemies.map((enemy) => (
+                    <EnemyUI key={enemy.id} enemy={enemy} showInteraction={nearbyEnemy?.id === enemy.id} />
+                ))}
+                {stageTexture && <pixiSprite texture={stageTexture} x={0} y={0} zIndex={0} scale={MAP_SCALE} />}
                 <pixiGraphics
-                    draw={g => {
+                    draw={(g) => {
                         g.clear();
                         g.setStrokeStyle({
                             width: 2,
                             color: 0xa855f7,
-                            alpha: 1
+                            alpha: 1,
                         });
                         g.poly(polygonPoints.flat(), true);
                         g.fill({ color: 0xa855f7, alpha: 0.15 });
@@ -373,5 +377,5 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
                 />
             </pixiContainer>
         </>
-    ));
-}
+    );
+};

@@ -1,6 +1,6 @@
 import Hero from '@/types/hero';
 import { Assets, Texture } from 'pixi.js';
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 
 interface TeamContextType {
     teamHeroes: Hero[];
@@ -8,8 +8,10 @@ interface TeamContextType {
     setTeamHeroes: (heroes: Hero[]) => void;
     updateHeroHealth: (heroId: string, newHealth: number) => void;
     resetTeamHealth: () => void;
+    changeCurrentHero: (teamIndex: number) => void;
     isTeamFull: boolean;
     textures: Texture[];
+    texturesLoaded: boolean;
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -19,44 +21,83 @@ const STORAGE_KEY = 'gamepa_team_state';
 const ensureCurrentHealth = (hero: Hero): Hero => {
     return {
         ...hero,
-        current_health: hero.current_health !== undefined ? hero.current_health : hero.health
+        current_health: hero.current_health !== undefined ? hero.current_health : hero.health,
     };
 };
 
 export const TeamProvider = ({ children, initialHeroes }: { children: ReactNode; initialHeroes: Hero[] }) => {
     const [teamHeroes, setTeamHeroesState] = useState<Hero[]>(() => {
         const savedTeam = localStorage.getItem(STORAGE_KEY);
-        
+
         if (savedTeam) {
             const parsedTeam = JSON.parse(savedTeam);
             if (parsedTeam.length > 0) {
                 return parsedTeam.map(ensureCurrentHealth);
             }
         }
-        
+
         return initialHeroes.map(ensureCurrentHealth);
     });
     const [textures, setTextures] = useState<Texture[]>([]);
-    const [currentHero, setCurrentHero] = useState<Hero>(teamHeroes[0]);
+    const texturesRef = useRef<Texture[]>([]); // Añadir ref para texturas
+    const [texturesLoaded, setTexturesLoaded] = useState(false);
+    const texturesLoadedRef = useRef(false);
+    const [currentHero, setCurrentHero] = useState<Hero>(() => {
+        const heroes = (() => {
+            const savedTeam = localStorage.getItem(STORAGE_KEY);
+            if (savedTeam) {
+                const parsedTeam = JSON.parse(savedTeam);
+                if (parsedTeam.length > 0) {
+                    return parsedTeam.map(ensureCurrentHealth);
+                }
+            }
+            return initialHeroes.map(ensureCurrentHealth);
+        })();
+        return heroes[0];
+    });
 
+    // Cargar texturas UNA SOLA VEZ al montar el componente
+    useEffect(() => {
+        if (texturesLoadedRef.current || teamHeroes.length === 0) return;
+
+        const loadTextures = async () => {
+            try {
+
+                const texturePromises = teamHeroes.map((hero) => Assets.load<Texture>(hero.spritesheet));
+                const loadedTextures = await Promise.all(texturePromises);
+
+                console.log('✅ Textures loaded successfully:', loadedTextures);
+
+                setTextures(loadedTextures);
+                texturesRef.current = loadedTextures; // Guardar en ref también
+                setTexturesLoaded(true);
+                texturesLoadedRef.current = true;
+
+                // Actualizar currentHero con su textura
+                const currentHeroIndex = teamHeroes.findIndex((h) => h.id === currentHero.id);
+                if (currentHeroIndex !== -1 && loadedTextures[currentHeroIndex]) {
+                    setCurrentHero((prev) => ({
+                        ...prev,
+                        texture: loadedTextures[currentHeroIndex],
+                    }));
+                }
+            } catch (error) {
+                console.error('❌ Error loading textures:', error);
+                setTexturesLoaded(false);
+            }
+        };
+
+        loadTextures();
+    }, []); // Array vacío = solo se ejecuta una vez
+
+    // Guardar en localStorage cuando cambian los héroes
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(teamHeroes));
-        
-        const textureMap = teamHeroes.map(hero => Assets.load<Texture>(hero.spritesheet));
-        Promise.all(textureMap).then(textures => {
-            setTextures(textures);
-
-            if (currentHero) {
-                setCurrentHero({
-                    ...currentHero,
-                    texture: textures[teamHeroes.findIndex(h => h.id === currentHero.id)]
-                });
-            }
-        });
     }, [teamHeroes]);
 
+    // Sincronizar initialHeroes si es necesario
     useEffect(() => {
-        setTeamHeroesState(prev => {
+        setTeamHeroesState((prev) => {
             if (prev.length === 0 && initialHeroes.length > 0) {
                 return initialHeroes.map(ensureCurrentHealth);
             }
@@ -71,11 +112,7 @@ export const TeamProvider = ({ children, initialHeroes }: { children: ReactNode;
 
     const updateHeroHealth = (heroId: string, newHealth: number) => {
         setTeamHeroesState((prev) =>
-            prev.map((hero) =>
-                hero.id === heroId
-                    ? { ...hero, current_health: Math.max(0, Math.min(newHealth, hero.health)) }
-                    : hero
-            )
+            prev.map((hero) => (hero.id === heroId ? { ...hero, current_health: Math.max(0, Math.min(newHealth, hero.health)) } : hero)),
         );
     };
 
@@ -84,8 +121,27 @@ export const TeamProvider = ({ children, initialHeroes }: { children: ReactNode;
             prev.map((hero) => ({
                 ...hero,
                 current_health: hero.health,
-            }))
+            })),
         );
+    };
+
+    const changeCurrentHero = (teamIndex: number) => {
+        const hero = teamHeroes[teamIndex];
+
+        if (!hero) {
+            console.warn('❌ Hero not found at index:', teamIndex);
+            return;
+        }
+
+        if (!texturesRef.current[teamIndex]) {
+            console.warn('❌ Texture not available for hero at index:', teamIndex, 'Available:', texturesRef.current.length);
+            return;
+        }
+        
+        setCurrentHero({
+            ...hero,
+            texture: texturesRef.current[teamIndex],
+        });
     };
 
     const isTeamFull = teamHeroes.length >= MAX_TEAM_SIZE;
@@ -98,8 +154,10 @@ export const TeamProvider = ({ children, initialHeroes }: { children: ReactNode;
                 setTeamHeroes,
                 updateHeroHealth,
                 resetTeamHealth,
+                changeCurrentHero,
                 isTeamFull,
                 textures,
+                texturesLoaded,
             }}
         >
             {children}

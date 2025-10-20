@@ -4,7 +4,7 @@ import { getRow, HERO_FRAME_SIZE, HERO_MOVING_SPEED, HERO_MOVING_SPEED_RUNNING }
 import { useTeam } from "@/Providers/TeamProvider";
 import { useTick } from "@pixi/react";
 import { Rectangle, Sprite, Texture } from "pixi.js";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface HeroUIProps {
     x: number;
@@ -31,6 +31,30 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
     const frameRef = useRef(1);
     const [particles, setParticles] = useState<Particle[]>([]);
     const particleIdRef = useRef(0);
+    const previousHeroIdRef = useRef(currentHero.id);
+
+    // Reset animación cuando cambia el héroe
+    useEffect(() => {
+        if (previousHeroIdRef.current !== currentHero.id) {
+            frameRef.current = 0;
+            elapsedTimeRef.current = 0;
+            setParticles([]);
+            previousHeroIdRef.current = currentHero.id;
+            
+            // Forzar actualización inicial del sprite sin cambiar posición
+            if (currentHero.texture) {
+                const frame = new Rectangle(0, getRow(direction) * HERO_FRAME_SIZE, HERO_FRAME_SIZE, HERO_FRAME_SIZE);
+                const texture = new Texture({
+                    source: currentHero.texture.source,
+                    frame: frame,
+                });
+                const newSprite = new Sprite(texture);
+                newSprite.width = HERO_FRAME_SIZE;
+                newSprite.height = HERO_FRAME_SIZE;
+                setSprite(newSprite);
+            }
+        }
+    }, [currentHero.id, currentHero.texture, direction]);
 
     const updateSprite = useCallback(() => {
         if (!currentHero.texture) return;
@@ -64,6 +88,9 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
             }
 
             column = frameRef.current;
+        } else {
+            // Cuando no se mueve, mostrar el frame 0 (idle)
+            column = 0;
         }
 
         setParticles(prev => 
@@ -90,7 +117,12 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
 
     useTick(updateSprite);
 
-    return (sprite && (
+    // No renderizar nada hasta que tengamos un sprite válido
+    if (!sprite || !currentHero.texture) {
+        return null;
+    }
+
+    return (
         <>
             {particles.map(particle => (
                 <pixiGraphics
@@ -113,8 +145,8 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
                 y={y}
                 x={x}
                 texture={sprite.texture}
-                zIndex={spriteRef.current?.y}
+                zIndex={spriteRef.current?.y || 1}
             />
         </>
-    ));
+    );
 }

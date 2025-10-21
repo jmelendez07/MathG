@@ -1,6 +1,6 @@
 import { ANIMATION_SPEED } from '@/components/constants/game-world';
 import useEnemyAnimation from '@/components/enemy/useEnemyAnimation';
-import { useScreen } from '@/Providers/ScreenProvider';
+import { useScreen } from '@/providers/screen-provider';
 import IEnemy from '@/types/enemy';
 import { extend, useTick } from '@pixi/react';
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
@@ -113,7 +113,12 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                         />
                     )}
 
-                    <pixiContainer x={(enemy.combat_position?.x || 0) - 11 * scale} y={(enemy.combat_position?.y || 0) + 140 * scale} zIndex={5} scale={scale}>
+                    <pixiContainer
+                        x={(enemy.combat_position?.x || 0) - 11 * scale}
+                        y={(enemy.combat_position?.y || 0) + 140 * scale}
+                        zIndex={5}
+                        scale={scale}
+                    >
                         <pixiGraphics
                             draw={(g) => {
                                 g.clear();

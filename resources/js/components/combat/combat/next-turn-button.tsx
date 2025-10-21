@@ -1,4 +1,4 @@
-import { useScreen } from '@/Providers/ScreenProvider';
+import { useScreen } from '@/providers/screen-provider';
 import { useTick } from '@pixi/react';
 import { useState } from 'react';
 
@@ -7,7 +7,6 @@ interface INextTurnButtonProps {
 }
 
 export default function NextTurnButton({ onClick }: INextTurnButtonProps) {
-
     const { scale, screenSize } = useScreen();
 
     // Calcular dimensiones responsivas

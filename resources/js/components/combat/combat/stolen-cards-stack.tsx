@@ -1,4 +1,4 @@
-import { useScreen } from '@/Providers/ScreenProvider';
+import { useScreen } from '@/providers/screen-provider';
 import Card from '@/types/card';
 import { useTick } from '@pixi/react';
 import { useCallback, useState } from 'react';

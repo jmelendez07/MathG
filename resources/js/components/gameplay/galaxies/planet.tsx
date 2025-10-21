@@ -1,9 +1,8 @@
-import IPlanet from "@/types/planet";
-import { Texture } from "pixi.js";
-import React, { useEffect, useState } from "react";
-import { useTick } from "@pixi/react";
-import { ColorMatrixFilter } from "pixi.js";
-import { useScreen } from "@/Providers/ScreenProvider";
+import { useScreen } from '@/providers/screen-provider';
+import IPlanet from '@/types/planet';
+import { useTick } from '@pixi/react';
+import { ColorMatrixFilter, Texture } from 'pixi.js';
+import { useEffect, useState } from 'react';
 
 interface IPlanetProps {
     planet: IPlanet;
@@ -11,7 +10,7 @@ interface IPlanetProps {
     y: number;
     planetTextures: { [key: string]: Texture };
     handleOnClick: (planet: IPlanet) => void;
-    transitionStage?: "enter" | "exit";
+    transitionStage?: 'enter' | 'exit';
     targetX?: number;
     targetY?: number;
     targetScale?: number;
@@ -30,7 +29,7 @@ export default function Planet({
     targetY,
     targetScale,
     locked = false,
-    onTransitionEnd
+    onTransitionEnd,
 }: IPlanetProps) {
     const [hovered, setHovered] = useState(false);
     const [pos, setPos] = useState({ x, y });
@@ -59,34 +58,24 @@ export default function Planet({
         let nextX = pos.x;
         let nextY = pos.y;
 
-        if (transitionStage === "enter" && targetX !== undefined && targetY !== undefined && targetScale !== undefined) {
+        if (transitionStage === 'enter' && targetX !== undefined && targetY !== undefined && targetScale !== undefined) {
             // Animar hacia el centro y escala grande
             nextScale += (targetScale - nextScale) * 0.15;
             nextX += (targetX - nextX) * 0.15;
             nextY += (targetY - nextY) * 0.15;
 
             // Detecta fin de animación
-            if (
-                Math.abs(nextScale - targetScale) < 0.01 &&
-                Math.abs(nextX - targetX) < 1 &&
-                Math.abs(nextY - targetY) < 1 &&
-                onTransitionEnd
-            ) {
+            if (Math.abs(nextScale - targetScale) < 0.01 && Math.abs(nextX - targetX) < 1 && Math.abs(nextY - targetY) < 1 && onTransitionEnd) {
                 onTransitionEnd();
             }
-        } else if (transitionStage === "exit" && targetX !== undefined && targetY !== undefined) {
+        } else if (transitionStage === 'exit' && targetX !== undefined && targetY !== undefined) {
             // Animar hacia posición y escala original
             nextScale += (baseScale - nextScale) * 0.15;
             nextX += (targetX - nextX) * 0.15;
             nextY += (targetY - nextY) * 0.15;
 
             // Detecta fin de animación
-            if (
-                Math.abs(nextScale - baseScale) < 0.01 &&
-                Math.abs(nextX - targetX) < 1 &&
-                Math.abs(nextY - targetY) < 1 &&
-                onTransitionEnd
-            ) {
+            if (Math.abs(nextScale - baseScale) < 0.01 && Math.abs(nextX - targetX) < 1 && Math.abs(nextY - targetY) < 1 && onTransitionEnd) {
                 onTransitionEnd();
             }
         } else {
@@ -105,36 +94,39 @@ export default function Planet({
             x={pos.x}
             y={pos.y}
             interactive={!transitionStage && !locked}
-            cursor={!transitionStage && !locked ? "pointer" : undefined}
+            cursor={!transitionStage && !locked ? 'pointer' : undefined}
             onClick={() => !transitionStage && !locked && handleOnClick(planet)}
             onTap={() => !transitionStage && !locked && handleOnClick(planet)}
             onMouseOver={() => !transitionStage && !locked && setHovered(true)}
             onMouseOut={() => !transitionStage && !locked && setHovered(false)}
         >
-            {planetTextures[planet.id] && (() => {
-                const texture = planetTextures[planet.id];
-                const texWidth = texture.width * scale;
-                const texHeight = texture.height * scale;
+            {planetTextures[planet.id] &&
+                (() => {
+                    const texture = planetTextures[planet.id];
+                    const texWidth = texture.width * scale;
+                    const texHeight = texture.height * scale;
 
-                const filters = locked
-                    ? [(() => { 
-                        const f = new ColorMatrixFilter(); 
-                        f.greyscale(0.3, false); 
-                        return f; 
-                    })()]
-                    : undefined;
+                    const filters = locked
+                        ? [
+                              (() => {
+                                  const f = new ColorMatrixFilter();
+                                  f.greyscale(0.3, false);
+                                  return f;
+                              })(),
+                          ]
+                        : undefined;
 
-                return (
-                    <pixiSprite
-                        texture={texture}
-                        anchor={0.5}
-                        width={texWidth * scaleScreen}
-                        height={texHeight * scaleScreen}
-                        scale={scaleScreen}
-                        filters={filters}
-                    />
-                );
-            })()}
+                    return (
+                        <pixiSprite
+                            texture={texture}
+                            anchor={0.5}
+                            width={texWidth * scaleScreen}
+                            height={texHeight * scaleScreen}
+                            scale={scaleScreen}
+                            filters={filters}
+                        />
+                    );
+                })()}
         </pixiContainer>
     );
 }

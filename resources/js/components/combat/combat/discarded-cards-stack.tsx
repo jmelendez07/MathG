@@ -1,4 +1,4 @@
-import { useScreen } from '@/Providers/ScreenProvider';
+import { useScreen } from '@/providers/screen-provider';
 import Card from '@/types/card';
 import { useTick } from '@pixi/react';
 import { useCallback, useState } from 'react';
@@ -9,7 +9,6 @@ interface IDiscardedCardsStackProps {
 }
 
 export default function DiscardedCardsStack({ onClick, cards }: IDiscardedCardsStackProps) {
-
     const { scale, screenSize } = useScreen();
 
     // Calcular dimensiones responsivas

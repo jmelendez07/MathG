@@ -1,5 +1,5 @@
 import useIconMissionAnimation from "@/hooks/animations/useIconMissionAnimation";
-import { useScreen } from "@/Providers/ScreenProvider";
+import { useScreen } from "@/providers/screen-provider";
 import { Stage } from "@/types/planet";
 import { useTick } from "@pixi/react";
 import { Assets, Texture, TextStyle } from "pixi.js"

@@ -1,9 +1,8 @@
-import { Stage as IStage } from "@/types/planet";
-import { router } from "@inertiajs/react";
-import { Graphics, Texture } from "pixi.js";
-import { useCallback, useEffect, useRef } from "react";
-import { ColorMatrixFilter } from "pixi.js";
-import { useScreen } from "@/Providers/ScreenProvider";
+import { useScreen } from '@/providers/screen-provider';
+import { Stage as IStage } from '@/types/planet';
+import { router } from '@inertiajs/react';
+import { ColorMatrixFilter, Graphics, Texture } from 'pixi.js';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface IStageProps {
     stage: IStage;
@@ -29,25 +28,27 @@ export default function Stage({ stage, x, y, stageTextures, locked = false }: IS
     }, [stage.id]);
 
     const filters = locked
-        ? [(() => { 
-            const f = new ColorMatrixFilter(); 
-            f.greyscale(0.3, false); 
-            return f; 
-        })()]
+        ? [
+              (() => {
+                  const f = new ColorMatrixFilter();
+                  f.greyscale(0.3, false);
+                  return f;
+              })(),
+          ]
         : undefined;
 
     return (
-        <pixiContainer 
-            x={x} 
+        <pixiContainer
+            x={x}
             y={y}
-            interactive={!locked} 
+            interactive={!locked}
             onClick={() => !locked && handleClick()}
-            onTap={() => !locked && handleClick()} 
+            onTap={() => !locked && handleClick()}
             cursor={!locked ? 'pointer' : undefined}
         >
             {!locked && (
                 <pixiGraphics
-                    draw={g => {
+                    draw={(g) => {
                         g.clear();
                         g.beginFill(0x8b5cf6);
                         g.drawCircle(0, 0, 55 * scale);
@@ -57,7 +58,7 @@ export default function Stage({ stage, x, y, stageTextures, locked = false }: IS
             )}
             <pixiGraphics
                 ref={maskRef}
-                draw={g => {
+                draw={(g) => {
                     g.clear();
                     g.beginFill(0x8b5cf6);
                     g.drawCircle(0, 0, 50 * scale);

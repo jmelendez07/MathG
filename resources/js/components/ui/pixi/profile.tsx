@@ -1,4 +1,4 @@
-import { useScreen } from "@/Providers/ScreenProvider";
+import { useScreen } from "@/providers/screen-provider";
 import { SharedData } from "@/types";
 import { usePage } from "@inertiajs/react";
 import { Assets, Graphics, TextStyle, Texture } from "pixi.js";

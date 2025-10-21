@@ -24,6 +24,10 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+Route::get('/loading', function () {
+    return Inertia::render('test-loading');
+})->name('loading');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:estudiante'])->group(function () {
         Route::get('heroes/opciones', [HeroController::class, 'options'])->name('heroes.options');

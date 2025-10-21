@@ -17,8 +17,9 @@ import { Exercise } from './exercise/exercise';
 import HeroStats from './hero-stats';
 import { CombatUI } from './combat-ui/combat-ui';
 import { Stage } from '@/types/planet';
-import { useTeam } from '@/Providers/TeamProvider';
-import { useScreen } from '@/Providers/ScreenProvider';
+import { useTeam } from '@/providers/team-provider';
+import { useScreen } from '@/providers/screen-provider';
+
 
 extend({ Sprite, Container, Graphics });
 

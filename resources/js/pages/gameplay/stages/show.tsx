@@ -1,6 +1,6 @@
 import { Experience } from '@/components/gameplay/experience';
-import { useScreen } from '@/Providers/ScreenProvider';
-import { TeamProvider } from '@/Providers/TeamProvider';
+import { useScreen } from '@/providers/screen-provider';
+import { TeamProvider } from '@/providers/team-provider';
 import Card from '@/types/card';
 import Enemy from '@/types/enemy';
 import Hero from '@/types/hero';

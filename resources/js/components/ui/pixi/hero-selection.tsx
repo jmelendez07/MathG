@@ -1,5 +1,5 @@
-import { useScreen } from '@/Providers/ScreenProvider';
-import { useTeam } from '@/Providers/TeamProvider';
+import { useScreen } from '@/providers/screen-provider';
+import { useTeam } from '@/providers/team-provider';
 import { Assets, Container, Texture, TextStyle } from 'pixi.js';
 import { useEffect, useRef, useState, useMemo } from 'react';
 

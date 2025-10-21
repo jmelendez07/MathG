@@ -1,3 +1,4 @@
+import { useScreen } from '@/Providers/ScreenProvider';
 import { useTick } from '@pixi/react';
 import { useState } from 'react';
 
@@ -6,13 +7,11 @@ interface INextTurnButtonProps {
 }
 
 export default function NextTurnButton({ onClick }: INextTurnButtonProps) {
+
+    const { scale, screenSize } = useScreen();
+
     // Calcular dimensiones responsivas
     const getResponsiveDimensions = () => {
-        const screenScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-        const minScale = 0.6;
-        const maxScale = 1.0;
-        const scale = Math.max(minScale, Math.min(maxScale, screenScale));
-
         return {
             scale,
             buttonWidth: 200 * scale,
@@ -67,8 +66,8 @@ export default function NextTurnButton({ onClick }: INextTurnButtonProps) {
 
     return (
         <pixiContainer
-            x={window.innerWidth - dimensions.marginX}
-            y={window.innerHeight - dimensions.marginY + yOffset}
+            x={screenSize.width - dimensions.marginX}
+            y={screenSize.height - dimensions.marginY + yOffset}
             interactive={true}
             zIndex={10}
             eventMode="static"

@@ -53,7 +53,7 @@ class GameplayController extends Controller
 
     public function stage($stageId)
     {
-        $stage = Stage::with('missions')->findOrFail($stageId);
+        $stage = Stage::with(['points', 'missions'])->findOrFail($stageId);
         $heroes = Auth::user()->heroes()->with(['cards.type', 'heroAnimations', 'heroRole'])->get();
         $easy = Dificulty::where('name', 'Fácil')->firstOrFail()->id;
 
@@ -69,8 +69,6 @@ class GameplayController extends Controller
             $enemies[] = $DragonEnemy;
         }
 
-        // $enemies = Enemy::with('type')->limit(2)->get();
-
         $cards = [];
 
         foreach($heroes as $hero){
@@ -84,18 +82,9 @@ class GameplayController extends Controller
         
         return Inertia::render('gameplay/stages/show', [
             'stage' => $stage,
+            'heroes' => $heroes,
             'enemies' => $enemies,
             'cards' => $cards,
-            'heroes' => $heroes
-        ]);
-    }
-
-    public function test($stage)
-    {
-        $stage = Stage::with(['points'])->findOrFail($stage);
-        
-        return Inertia::render('gameplay/stages/test', [
-            'stage' => $stage
         ]);
     }
     

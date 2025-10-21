@@ -33,7 +33,6 @@ export default function useIconMissionAnimation ({ texture, frameWidth, frameHei
 
     const updateSprite = () => {
         if (!isAnimating) {
-            // Si no está animando, solo mantener el frame actual
             const newSprite = createSprite(0, frameRef.current);
             setSprite(newSprite);
             return;
@@ -47,18 +46,13 @@ export default function useIconMissionAnimation ({ texture, frameWidth, frameHei
                 if (frameRef.current < totalFrames - 1) {
                     frameRef.current += 1;
                 } else {
-                    // Llegó al último frame, detener animación
                     setIsAnimating(false);
-                    console.log("Animation ended, staying on last frame:", frameRef.current);
                 }
             } else {
-                // Animación reversa
                 if (frameRef.current > 0) {
                     frameRef.current -= 1;
                 } else {
-                    // Llegó al primer frame, detener animación
                     setIsAnimating(false);
-                    console.log("Reverse animation ended, staying on first frame:", frameRef.current);
                 }
             }
         }
@@ -68,14 +62,12 @@ export default function useIconMissionAnimation ({ texture, frameWidth, frameHei
     }
 
     const handleHoverStart = () => {
-        console.log("Hover start");
         setHovered(true);
         setDirection('forward');
         setIsAnimating(true);
     }
 
     const handleHoverEnd = () => {
-        console.log("Hover end");
         setHovered(false);
         setDirection('reverse');
         setIsAnimating(true);

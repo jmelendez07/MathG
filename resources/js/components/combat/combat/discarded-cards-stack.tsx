@@ -1,3 +1,4 @@
+import { useScreen } from '@/Providers/ScreenProvider';
 import Card from '@/types/card';
 import { useTick } from '@pixi/react';
 import { useCallback, useState } from 'react';
@@ -8,13 +9,11 @@ interface IDiscardedCardsStackProps {
 }
 
 export default function DiscardedCardsStack({ onClick, cards }: IDiscardedCardsStackProps) {
+
+    const { scale, screenSize } = useScreen();
+
     // Calcular dimensiones responsivas
     const getResponsiveDimensions = () => {
-        const screenScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-        const minScale = 0.6;
-        const maxScale = 1.0;
-        const scale = Math.max(minScale, Math.min(maxScale, screenScale));
-
         return {
             scale,
             stackSize: 50 * scale,
@@ -30,8 +29,8 @@ export default function DiscardedCardsStack({ onClick, cards }: IDiscardedCardsS
             lineStartX: 10 * scale,
             lineEndX: 42 * scale,
             lineStartY: 18 * scale,
-            containerX: window.innerWidth - 145 * scale,
-            containerY: window.innerHeight - 210 * scale,
+            containerX: screenSize.width - 145 * scale,
+            containerY: screenSize.height - 210 * scale,
             tooltipX: 30 * scale,
             tooltipY: 63 * scale,
             tooltipFontSize: 14 * scale,
@@ -118,7 +117,7 @@ export default function DiscardedCardsStack({ onClick, cards }: IDiscardedCardsS
         [cards.length, dimensions],
     );
 
-    useTick((ticker) => {
+    useTick(() => {
         setFloatAnimation((prev) => prev + 0.02);
     });
 

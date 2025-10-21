@@ -1,28 +1,26 @@
 import { extend, useTick } from '@pixi/react';
-import { Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
-import { useState } from 'react';
-import { useHeroAnimation } from '../Hero/useHeroAnimation';
-import { ANIMATION_SPEED } from '../constants/game-world';
+import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
+import { useEffect, useState } from 'react';
+import Hero from '@/types/hero';
+import { useScreen } from '@/Providers/ScreenProvider';
 
 extend({ Container, Sprite, Graphics, Text });
 
-interface IHeroStatsProps {
+interface HeroStatsProps {
     currentHp: number;
     maxHp: number;
+    currentHero: Hero | null;
+    energyTexture: Texture | null;
     maxEnergy: number;
     currentEnergy: number;
-    heroTexture: Texture;
-    energyTexture: Texture | null;
-    position?: { x: number; y: number };
 }
 
-const HeroStats = ({ currentHp, maxHp, maxEnergy, currentEnergy, heroTexture, energyTexture, position }: IHeroStatsProps) => {
+const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, currentEnergy }: HeroStatsProps) => {
+
+    const { scale, screenSize } = useScreen();
+
     // Calcular dimensiones responsivas
     const getResponsiveDimensions = () => {
-        const screenScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-        const minScale = 0.6;
-        const maxScale = 1.0;
-        const scale = Math.max(minScale, Math.min(maxScale, screenScale));
 
         return {
             scale,
@@ -46,27 +44,31 @@ const HeroStats = ({ currentHp, maxHp, maxEnergy, currentEnergy, heroTexture, en
     };
 
     const dimensions = getResponsiveDimensions();
-    const defaultPosition = position || {
+    
+    // ✅ Posición por defecto en la esquina inferior izquierda
+    const defaultPosition = {
         x: 20 * dimensions.scale,
-        y: window.innerHeight - dimensions.yOffset,
+        y: screenSize.height - dimensions.yOffset,
     };
 
     const [animatedHp, setAnimatedHp] = useState(currentHp);
     const [floatAnimation, setFloatAnimation] = useState(0);
     const [colorTransition, setColorTransition] = useState(0);
     const [isHeroHovered, setIsHeroHovered] = useState(false);
+    const [currentHeroAvatar, setCurrentHeroAvatar] = useState<Texture>(Texture.EMPTY);
     const healthPercentage = animatedHp / maxHp;
 
-    const { sprite: heroSprite, updateSprite: updateHeroSprite } = useHeroAnimation({
-        texture: heroTexture,
-        frameWidth: 64,
-        frameHeight: 64,
-        totalFrames: 2,
-        animationSpeed: ANIMATION_SPEED,
-    });
 
-    useTick((ticker) => {
-        updateHeroSprite('DOWN', true, false, true);
+    useEffect(() => {
+        const loadCurrentHeroAvatar = async () => {
+            Assets.load<Texture>(currentHero?.avatar_url || '').then((texture) => {
+                setCurrentHeroAvatar(texture);
+            });
+        };
+        loadCurrentHeroAvatar();
+    }, []);
+
+    useTick(() => {
         setFloatAnimation((prev) => prev + 0.02);
 
         const lerpSpeed = 0.05;
@@ -95,12 +97,15 @@ const HeroStats = ({ currentHp, maxHp, maxEnergy, currentEnergy, heroTexture, en
 
     const floatOffset = Math.sin(floatAnimation) * 3 * dimensions.scale;
 
+    const xPos =  defaultPosition.x;
+    const yPos =  defaultPosition.y;
+
     return (
-        <pixiContainer x={defaultPosition.x} y={defaultPosition.y + floatOffset}>
-            {heroSprite && (
+        <pixiContainer x={xPos} y={yPos + floatOffset}>
+            {currentHeroAvatar && (
                 <>
                     <pixiSprite
-                        texture={heroSprite.texture}
+                        texture={currentHeroAvatar}
                         x={20 * dimensions.scale}
                         y={-dimensions.heroYOffset}
                         width={isHeroHovered ? dimensions.heroHoverSize : dimensions.heroSize}

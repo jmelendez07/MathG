@@ -1,0 +1,60 @@
+name: Generate Folder Tree and Upload to Google Drive
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  upload_diagram:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install Mermaid CLI
+        run: npm install -g @mermaid-js/mermaid-cli
+
+      - name: Create Puppeteer Config
+        run: |
+          echo '{' > puppeteer-config.json
+          echo '  "args": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"]' >> puppeteer-config.json
+          echo '}' >> puppeteer-config.json
+
+      - name: Generate Folder Structure for Mermaid (Mindmap)
+        run: |
+          echo "mindmap" > folder_tree.mmd
+          echo "  root((MATHG))" >> folder_tree.mmd
+          
+          find . -mindepth 1 -type d -not -path "./.git/*" -not -path "./.git" | sed 's/^\.\///' | sort | while read dir; do
+            
+            LEVEL=$(echo "$dir" | tr -cd '/' | wc -c)
+            
+            SPACES_COUNT=$(( (LEVEL + 2) * 2 ))
+            
+            SPACES=$(printf "%*s" $SPACES_COUNT)
+            
+            FOLDER_NAME=$(basename "$dir")
+            
+            echo "$SPACES$FOLDER_NAME" >> folder_tree.mmd
+          done
+
+      - name: Render Mermaid to PNG
+        run: mmdc -i folder_tree.mmd -o folder_tree.png -p puppeteer-config.json --scale 3
+
+      - name: Upload PNG to Google Drive
+        uses: logickoder/g-drive-upload@main
+        with:
+          authType: 'oauth'
+          clientId: ${{ secrets.GOOGLE_CLIENT_ID }}
+          clientSecret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          refreshToken: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          filename: 'folder_tree.png'
+          folderId: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          name: ${{ secrets.GOOGLE_TREE_FILE_NAME }}
+          overwrite: 'true'

@@ -1,5 +1,5 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { LoaderCircle, Crown, Sparkles, Shield, Sword, Eye, EyeOff, Swords, ShieldPlus } from 'lucide-react';
+import { LoaderCircle, Crown, Sparkles, Shield, Sword, Eye, EyeOff, Swords, ShieldPlus, LogIn } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 
 import InputError from '@/components/input-error';
@@ -31,6 +31,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         remember: false,
     });
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -40,8 +41,13 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     useEffect(() => {
-        
+        const checkTouchDevice = () => {
+            setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+        };
+        checkTouchDevice();
+
         const handleMouseMove = (e: MouseEvent) => {
+            if (isTouchDevice) return;
             setMousePosition({ x: e.clientX, y: e.clientY });
         };
 
@@ -50,23 +56,24 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
         };
-    }, []);
+    }, [isTouchDevice]);
 
     return (
         <PublicLayout>
             <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 relative overflow-hidden">
                 <Head title="Iniciar Sesión" />
                 
-                <div 
-                    className="fixed w-4 h-4 bg-purple-400 rounded-full pointer-events-none z-50 mix-blend-difference transition-transform duration-100"
-                    style={{
-                        left: mousePosition.x - 8,
-                        top: mousePosition.y - 8,
-                        transform: `scale(${mousePosition.x > 0 ? 1.2 : 1})`
-                    }}
-                />
+                {!isTouchDevice && (
+                    <div 
+                        className="fixed w-4 h-4 bg-purple-400 rounded-full pointer-events-none z-50 mix-blend-difference transition-transform duration-100"
+                        style={{
+                            left: mousePosition.x - 8,
+                            top: mousePosition.y - 8,
+                            transform: `scale(${mousePosition.x > 0 ? 1.2 : 1})`
+                        }}
+                    />
+                )}
 
-                {/* Elementos decorativos de fondo */}
                 <div className="absolute inset-0">
                     <div className="absolute top-10 left-10 text-purple-300/20">
                         <Crown className="w-32 h-32 animate-pulse" />
@@ -80,8 +87,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     <div className="absolute bottom-10 right-10 text-purple-400/20">
                         <Sparkles className="w-20 h-20 animate-spin" />
                     </div>
-                    
-                    {/* Partículas flotantes */}
                     <div className="absolute top-1/4 left-1/3">
                         <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
                     </div>
@@ -93,25 +98,21 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     </div>
                 </div>
 
-                <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
+                <div className="relative z-10 flex items-center justify-center min-h-screen p-3 md:p-6">
                     <div className="w-full max-w-md">
-                        {/* Header épico */}
                         <div className="text-center mb-8">
-                            <Link href={route('home')} className="flex items-center justify-center mb-4">
+                            <Link href={route('home')} className="flex items-center justify-center">
                                 <Swords className="w-12 h-12 text-purple-300 mr-3 animate-pulse" />
-                                <h1 className="text-4xl font-jersey md:text-5xl text-white">{name}</h1>
+                                <h1 className="text-6xl font-jersey lg:text-8xl text-white">{name}</h1>
                                 <ShieldPlus className="w-12 h-12 text-purple-300 ml-3 animate-pulse" />
                             </Link>
-                            <h2 className="text-2xl font-jersey md:text-3xl text-purple-200 mb-2">Bienvenido, Héroe</h2>
-                            <p className="text-purple-300">Ingresa a tu reino épico</p>
+                            <h2 className="text-2xl font-jersey md:text-3xl text-purple-200 mb-2 tracking-wider">Bienvenido, Héroe</h2>
                         </div>
 
-                        {/* Card principal con efecto glassmorphism */}
-                        <div className="bg-white/10 backdrop-blur-lg border border-purple-300/30 rounded-2xl p-8 shadow-2xl">
+                        <div className="bg-white/10 backdrop-blur-lg border border-purple-300/30 rounded-2xl py-8 px-4 md:p-8 shadow-2xl">
                             <form className="space-y-6" onSubmit={submit}>
-                                {/* Campo Email */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="email" className="text-purple-200 font-medium">
+                                    <Label htmlFor="email" className="font-jersey text-xl leading-4 tracking-wider text-purple-100">
                                         Correo Electrónico
                                     </Label>
                                     <div className="relative">
@@ -125,22 +126,21 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             value={data.email}
                                             onChange={(e) => setData('email', e.target.value)}
                                             placeholder="correo@ejemplo.com"
-                                            className="bg-white/20 border-purple-300/50 text-white placeholder:text-purple-300 focus:border-purple-400 focus:ring-purple-400/50 rounded-xl h-12"
+                                            className="font-jersey text-lg md:text-xl leading-4 tracking-wider font-extralight bg-white/20 border-purple-300/50 text-white placeholder:text-purple-300 focus:border-purple-400 focus:ring-purple-400/50 rounded-xl h-12"
                                         />
                                     </div>
-                                    <InputError message={errors.email} />
+                                    <InputError className="text-red-400 !leading-4 font-jersey text-lg" message={errors.email} />
                                 </div>
 
-                                {/* Campo Password */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <Label htmlFor="password" className="text-purple-200 font-medium">
+                                        <Label htmlFor="password" className="font-jersey text-xl leading-4 tracking-wider text-purple-100">
                                             Contraseña
                                         </Label>
                                         {canResetPassword && (
                                             <TextLink 
                                                 href={route('password.request')} 
-                                                className="text-sm text-purple-300 hover:text-purple-200 transition-colors"
+                                                className="font-jersey leading-4 tracking-wider text-sm text-purple-300 hover:text-purple-200 transition-colors"
                                                 tabIndex={5}
                                             >
                                                 ¿Olvidaste tu contraseña?
@@ -157,7 +157,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             value={data.password}
                                             onChange={(e) => setData('password', e.target.value)}
                                             placeholder="Contraseña"
-                                            className="bg-white/20 border-purple-300/50 text-white placeholder:text-purple-300 focus:border-purple-400 focus:ring-purple-400/50 rounded-xl h-12 pr-12"
+                                            className="font-jersey text-lg md:text-xl leading-4 tracking-wider font-extralight bg-white/20 border-purple-300/50 text-white placeholder:text-purple-300 focus:border-purple-400 focus:ring-purple-400/50 rounded-xl h-12 pr-12"
                                         />
                                         <button
                                             type="button"
@@ -167,10 +167,9 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
                                     </div>
-                                    <InputError message={errors.password} />
+                                    <InputError className='text-red-400 !leading-4 font-jersey text-lg' message={errors.password} />
                                 </div>
 
-                                {/* Checkbox Remember */}
                                 <div className="flex items-center space-x-3">
                                     <Checkbox
                                         id="remember"
@@ -180,15 +179,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         tabIndex={3}
                                         className="border-purple-300/50 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
                                     />
-                                    <Label htmlFor="remember" className="text-purple-200 cursor-pointer">
+                                    <Label htmlFor="remember" className="text-purple-100 leading-4 cursor-pointer font-jersey text-base md:text-lg tracking-wider">
                                         Recuérdame
                                     </Label>
                                 </div>
 
-                                {/* Botón de Login épico */}
                                 <Button 
                                     type="submit" 
-                                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-jersey md:text-2xl py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 cursor-pointer h-12" 
+                                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-jersey text-xl tracking-wider md:text-2xl py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 cursor-pointer h-12" 
                                     tabIndex={4} 
                                     disabled={processing}
                                 >
@@ -199,36 +197,24 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         </div>
                                     ) : (
                                         <div className="flex items-center justify-center space-x-2">
-                                            <Shield className="w-5 h-5" />
+                                            <LogIn className="w-5 h-5" />
                                             <span>Iniciar Aventura</span>
                                         </div>
                                     )}
                                 </Button>
 
-                                {/* Divider */}
-                                <div className="relative my-6">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-purple-300/30"></div>
-                                    </div>
-                                    <div className="relative flex justify-center text-sm">
-                                        <span className="bg-transparent px-4 text-purple-300">o</span>
-                                    </div>
-                                </div>
-
-                                {/* Link de registro */}
-                                <div className="text-center">
-                                    <span className="text-purple-300">¿No tienes una cuenta? </span>
+                                <div className="text-center flex flex-col items-center">
+                                    <span className="text-purple-300 font-jersey tracking-widest leading-4">¿No tienes una cuenta? </span>
                                     <TextLink 
                                         href={route('register')} 
-                                        className="text-purple-200 hover:text-white font-semibold transition-colors"
+                                        className="text-purple-100 hover:text-white tracking-widest leading-4 text-lg transition-colors font-jersey"
                                         tabIndex={5}
                                     >
-                                        Únete a la aventura
+                                        Únete a la aventura aquí
                                     </TextLink>
                                 </div>
                             </form>
 
-                            {/* Status message */}
                             {status && (
                                 <div className="mt-6 p-4 bg-green-500/20 border border-green-400/30 rounded-xl">
                                     <div className="text-center text-sm font-medium text-green-300">{status}</div>
@@ -236,16 +222,13 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             )}
                         </div>
 
-                        {/* Footer */}
                         <div className="text-center mt-8">
-                            <p className="text-purple-400 text-sm">
+                            <p className="text-purple-300 font-[100] tracking-wider font-jersey text-lg">
                                 Prepárate para una experiencia épica
                             </p>
                         </div>
                     </div>
                 </div>
-
-                {/* Efecto de resplandor en las esquinas */}
                 <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
                 <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
             </div>

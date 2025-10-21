@@ -3,6 +3,7 @@ import { router } from "@inertiajs/react";
 import { Graphics, Texture } from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
 import { ColorMatrixFilter } from "pixi.js";
+import { useScreen } from "@/Providers/ScreenProvider";
 
 interface IStageProps {
     stage: IStage;
@@ -15,6 +16,7 @@ interface IStageProps {
 export default function Stage({ stage, x, y, stageTextures, locked = false }: IStageProps) {
     const maskRef = useRef<Graphics>(null);
     const spriteRef = useRef<any>(null);
+    const { scale } = useScreen();
 
     useEffect(() => {
         if (spriteRef.current && maskRef.current) {
@@ -39,7 +41,8 @@ export default function Stage({ stage, x, y, stageTextures, locked = false }: IS
             x={x} 
             y={y}
             interactive={!locked} 
-            onClick={() => !locked && handleClick()} 
+            onClick={() => !locked && handleClick()}
+            onTap={() => !locked && handleClick()} 
             cursor={!locked ? 'pointer' : undefined}
         >
             {!locked && (
@@ -47,7 +50,7 @@ export default function Stage({ stage, x, y, stageTextures, locked = false }: IS
                     draw={g => {
                         g.clear();
                         g.beginFill(0x8b5cf6);
-                        g.drawCircle(0, 0, 55);
+                        g.drawCircle(0, 0, 55 * scale);
                         g.endFill();
                     }}
                 />
@@ -57,7 +60,7 @@ export default function Stage({ stage, x, y, stageTextures, locked = false }: IS
                 draw={g => {
                     g.clear();
                     g.beginFill(0x8b5cf6);
-                    g.drawCircle(0, 0, 50);
+                    g.drawCircle(0, 0, 50 * scale);
                     g.endFill();
                 }}
             />
@@ -66,8 +69,8 @@ export default function Stage({ stage, x, y, stageTextures, locked = false }: IS
                     ref={spriteRef}
                     texture={stageTextures[stage.id]}
                     anchor={0.5}
-                    width={100}
-                    height={100}
+                    width={100 * scale}
+                    height={100 * scale}
                     x={0}
                     y={0}
                     filters={filters}

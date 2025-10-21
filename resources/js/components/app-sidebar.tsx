@@ -4,14 +4,19 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, ShieldCheck, Folder, LayoutGrid, Users, Earth, Dumbbell, GalleryHorizontalEnd, Swords, GraduationCap, Component } from 'lucide-react';
+import { ShieldCheck, Users, Earth, Dumbbell, GalleryHorizontalEnd, Swords, GraduationCap, Component, BookImage, ChartNoAxesColumnIncreasing, Logs, Activity } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Panel de Control',
         href: route('dashboard'),
-        icon: LayoutGrid,
+        icon: Activity,
+    },
+    {
+        title: 'Monitoreo',
+        href: route('logs.index'),
+        icon: Logs,
     },
     {
         title: 'Usuarios',
@@ -60,15 +65,15 @@ const gameplayNavItems: NavItem[] = [
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
+        title: 'Activos - Cloudinary',
+        href: 'https://console.cloudinary.com/app/c-3e219221fefc2b1b4348bbfc802a8d/assets/media_library/folders/ccb2be57b08937c49136246704c50f77a3',
+        icon: BookImage,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
+        title: 'Power BI',
+        href: 'https://app.powerbi.com/view?r=eyJrIjoiOTlmYWE5OGYtYWFmYi00NTI2LWE0NWQtOGVhMDZhMTU0YzhjIiwidCI6IjlkMTJiZjNmLWU0ZjYtNDdhYi05MTJmLTFhMmYwZmM0OGFhNCIsImMiOjR9',
+        icon: ChartNoAxesColumnIncreasing
+    }
 ];
 
 export function AppSidebar() {

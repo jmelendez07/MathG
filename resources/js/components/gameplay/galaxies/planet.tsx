@@ -3,6 +3,7 @@ import { Texture } from "pixi.js";
 import React, { useEffect, useState } from "react";
 import { useTick } from "@pixi/react";
 import { ColorMatrixFilter } from "pixi.js";
+import { useScreen } from "@/Providers/ScreenProvider";
 
 interface IPlanetProps {
     planet: IPlanet;
@@ -34,6 +35,7 @@ export default function Planet({
     const [hovered, setHovered] = useState(false);
     const [pos, setPos] = useState({ x, y });
     const [scale, setScale] = useState(1);
+    const { scale: scaleScreen } = useScreen();
 
     useEffect(() => {
         if (!transitionStage) {
@@ -105,13 +107,14 @@ export default function Planet({
             interactive={!transitionStage && !locked}
             cursor={!transitionStage && !locked ? "pointer" : undefined}
             onClick={() => !transitionStage && !locked && handleOnClick(planet)}
+            onTap={() => !transitionStage && !locked && handleOnClick(planet)}
             onMouseOver={() => !transitionStage && !locked && setHovered(true)}
             onMouseOut={() => !transitionStage && !locked && setHovered(false)}
         >
             {planetTextures[planet.id] && (() => {
                 const texture = planetTextures[planet.id];
-                const texWidth = texture.width;
-                const texHeight = texture.height;
+                const texWidth = texture.width * scale;
+                const texHeight = texture.height * scale;
 
                 const filters = locked
                     ? [(() => { 
@@ -125,9 +128,9 @@ export default function Planet({
                     <pixiSprite
                         texture={texture}
                         anchor={0.5}
-                        width={texWidth}
-                        height={texHeight}
-                        scale={scale}
+                        width={texWidth * scaleScreen}
+                        height={texHeight * scaleScreen}
+                        scale={scaleScreen}
                         filters={filters}
                     />
                 );

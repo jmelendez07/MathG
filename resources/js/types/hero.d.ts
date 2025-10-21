@@ -1,3 +1,4 @@
+import { Texture } from "pixi.js";
 import { HeroAnimation } from "./HeroAnimations";
 
 export default interface Hero {
@@ -5,11 +6,13 @@ export default interface Hero {
     name: string;
     spritesheet: string;
     health: number;
+    current_health: number;
     avatar_url: string;
     hero_animations: HeroAnimation[];
     hero_role: HeroRole;
     created_at: string;
     updated_at: string;
+    texture?: Texture;
 }
 
 export interface HeroRole {

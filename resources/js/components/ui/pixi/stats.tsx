@@ -1,30 +1,22 @@
-import Hero from '@/types/hero';
+import { useScreen } from '@/providers/screen-provider';
+import { useTeam } from '@/providers/team-provider';
 import { extend } from '@pixi/react';
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import { useEffect, useState } from 'react';
 
 extend({ Container, Sprite, Graphics, Text });
 
-interface StatsUIProps {
-    currentHero: Hero;
-}
-
-export const StatsUI = ({ currentHero }: StatsUIProps) => {
+export const StatsUI = () => {
+    const { currentHero } = useTeam();
+    const { screenSize, scale } = useScreen();
     const [iconHeroRole, setIconHeroRole] = useState<Texture>();
-
-    const maxHp = currentHero.health; // Define un HP máximo fijo o desde las props
-    const currentHp = currentHero.health; // HP actual del héroe
-    const healthPercentage = currentHp / maxHp;
+    const healthPercentage = currentHero.current_health / currentHero.health;
 
     useEffect(() => {
         Assets.load<Texture>(currentHero.hero_role.icon_url).then((texture) => {
             setIconHeroRole(texture);
         });
     }, [currentHero]);
-
-    // Calcular dimensiones responsivas
-    const screenScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-    const scale = Math.max(0.6, Math.min(1.0, screenScale));
 
     const dimensions = {
         iconSize: 64 * scale,
@@ -35,7 +27,7 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
         actualBarWidth: 284 * scale,
         borderRadius: 10 * scale,
         innerBorderRadius: 8 * scale,
-        fontSize: 18 * scale,
+        fontSize: 26 * scale,
         strokeWidth: 2 * scale,
         spacing: 10 * scale,
     };
@@ -52,17 +44,13 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
         return 0xff7043;
     };
 
-    // Posición del contenedor: mitad del eje X, último cuadrante (9/10) del eje Y
-    const containerX = window.innerWidth / 2;
-    const containerY = (window.innerHeight / 10) * 9 + 50;
-
-    // Calcular el ancho total del contenido para centrarlo
+    const containerX = screenSize.width / 2;
+    const containerY = (screenSize.height / 10) * 9 + 50 * scale;
     const totalContentWidth = dimensions.iconSize + dimensions.spacing + dimensions.barWidth;
     const contentOffsetX = -totalContentWidth / 2;
 
     return (
-        <pixiContainer x={containerX} y={containerY}>
-            {/* Icono del rol del héroe */}
+        <pixiContainer x={containerX} y={containerY} zIndex={1}>
             {iconHeroRole && (
                 <pixiSprite
                     texture={iconHeroRole}
@@ -73,7 +61,6 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
                 />
             )}
 
-            {/* Sombra de la barra */}
             <pixiGraphics
                 draw={(g) => {
                     g.clear();
@@ -85,8 +72,6 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
                         dimensions.borderRadius,
                     );
                     g.fill({ color: 0x000000, alpha: 0.3 });
-
-                    // Borde exterior
                     g.roundRect(
                         contentOffsetX + dimensions.iconSize + dimensions.spacing,
                         -dimensions.barHeight / 2,
@@ -99,7 +84,6 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
                 }}
             />
 
-            {/* Fondo interno de la barra */}
             <pixiGraphics
                 draw={(g) => {
                     g.clear();
@@ -114,7 +98,6 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
                 }}
             />
 
-            {/* Barra de vida principal */}
             <pixiGraphics
                 draw={(g) => {
                     g.clear();
@@ -128,8 +111,6 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
                             dimensions.innerBorderRadius,
                         );
                         g.fill({ color: getHealthColor() });
-
-                        // Borde brillante
                         g.roundRect(
                             contentOffsetX + dimensions.iconSize + dimensions.spacing + 8 * scale,
                             -dimensions.barHeight / 2 + 8 * scale,
@@ -142,7 +123,6 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
                 }}
             />
 
-            {/* Brillo superior de la barra */}
             <pixiGraphics
                 draw={(g) => {
                     g.clear();
@@ -160,7 +140,6 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
                 }}
             />
 
-            {/* Divisiones de la barra */}
             <pixiGraphics
                 draw={(g) => {
                     g.clear();
@@ -174,22 +153,21 @@ export const StatsUI = ({ currentHero }: StatsUIProps) => {
                 }}
             />
 
-            {/* Texto de HP */}
             <pixiText
-                text={`${Math.round(currentHp)}/${maxHp}`}
+                text={`${Math.round(currentHero.current_health)}/${currentHero.health} HP`}
                 anchor={0.5}
                 x={contentOffsetX + dimensions.iconSize + dimensions.spacing + dimensions.barWidth / 2}
                 y={0}
                 style={{
-                    fontFamily: 'Arial',
+                    fontFamily: 'Jersey 10',
                     fontSize: dimensions.fontSize,
                     fill: 0xffffff,
-                    fontWeight: 'bold',
+                    fontWeight: '100',
                     stroke: { color: 0x000000, width: dimensions.strokeWidth },
                 }}
+                resolution={3}
             />
 
-            {/* Efecto adicional cuando la vida está alta */}
             {healthPercentage > 0.8 && (
                 <pixiGraphics
                     draw={(g) => {

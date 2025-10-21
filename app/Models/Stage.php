@@ -15,7 +15,6 @@ class Stage extends Model
         'planet_id',
         'image_url',
         'image_public_id',
-        ''
     ];
 
     public function planet()

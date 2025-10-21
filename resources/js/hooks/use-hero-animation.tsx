@@ -1,8 +1,8 @@
 import { HeroAnimation } from '@/types/HeroAnimations';
 import { Rectangle, Sprite, Texture } from 'pixi.js';
 import { useEffect, useRef, useState } from 'react';
-import { TILE_SIZE } from '../constants/game-world';
-import { Direction } from '../types/common';
+import { TILE_SIZE } from '../components/constants/game-world';
+import { Direction } from '../components/types/common';
 
 interface IHeroAnimationProps {
     texture: Texture;
@@ -14,7 +14,6 @@ interface IHeroAnimationProps {
 }
 
 export const useHeroAnimation = ({ texture, frameWidth, frameHeight, totalTilesFrames, animationSpeed, heroAnimation }: IHeroAnimationProps) => {
-    // Animation logic here
     const [sprite, setSprite] = useState<Sprite | null>(null);
     const frameRef = useRef(1);
     const elapsedTimeRef = useRef(0);
@@ -24,21 +23,20 @@ export const useHeroAnimation = ({ texture, frameWidth, frameHeight, totalTilesF
         elapsedTimeRef.current = 0;
     };
 
-    // Agregar useEffect para resetear cuando cambie la textura o heroAnimation
     useEffect(() => {
         resetAnimation();
-        setSprite(null); // ← Limpiar el sprite inmediatamente para evitar frames residuales
-    }, [texture, heroAnimation]); // ← Resetear al cambiar textura o heroAnimation
+        setSprite(null);
+    }, [texture, heroAnimation]);
 
     const getRowByDirection = (direction: Direction | null, isFighting: boolean, isStat: boolean, isAttacking: boolean) => {
         if (isFighting) {
-            return heroAnimation.row; // ← Usar row del heroAnimation si existe, sino fallback
+            return heroAnimation.row;
         } else if (isStat) {
             return 44;
         }
 
         if (isAttacking) {
-            return heroAnimation.row; // ← Usar row del heroAnimation si existe, sino fallback
+            return heroAnimation.row;
         }
 
         switch (direction) {
@@ -102,7 +100,7 @@ export const useHeroAnimation = ({ texture, frameWidth, frameHeight, totalTilesF
             frame: frame,
         });
         const newSprite = new Sprite(frameTexture);
-        newSprite.width = TILE_SIZE * 2; // Escala visual si quieres
+        newSprite.width = TILE_SIZE * 2;
         newSprite.height = TILE_SIZE;
 
         return newSprite;
@@ -117,10 +115,9 @@ export const useHeroAnimation = ({ texture, frameWidth, frameHeight, totalTilesF
     ): boolean => {
         const row = getRowByDirection(direction, isFighting, isStat ?? false, isAttacking ?? false);
 
-        // Calcular ancho del frame de ataque basado en el ancho real de la textura
-        const textureWidth = texture.source.width; // 1152px para hero1, etc.
-        const attackColumns = heroAnimation.totalAnimationsFrames; // Número de columnas de ataque (ajusta según spritesheet)
-        const attackFrameWidth = textureWidth / attackColumns; // 1152 / 8 = 144px
+        const textureWidth = texture.source.width;
+        const attackColumns = heroAnimation.totalAnimationsFrames;
+        const attackFrameWidth = textureWidth / attackColumns;
 
         elapsedTimeRef.current += animationSpeed;
         if (elapsedTimeRef.current >= 1) {
@@ -129,19 +126,16 @@ export const useHeroAnimation = ({ texture, frameWidth, frameHeight, totalTilesF
             const step = 3;
             const next = frameRef.current + step;
 
-            // Limitar para no exceder las columnas disponibles
             const maxColumnIndex = attackColumns - 1;
             const nextColumnIndex = Math.floor(next / step);
 
             if (next >= totalTilesFrames || nextColumnIndex > maxColumnIndex) {
-                // Mantener el último frame válido sin crear sprite extra
-                return false; // ← Animación terminada
+                return false;
             }
 
             frameRef.current = next;
         }
 
-        // Calcular columnIndex y clamp para seguridad
         const columnIndex = Math.min(Math.floor(frameRef.current / 3), attackColumns - 1);
         const newSprite = createAttackSprite(row, columnIndex, attackFrameWidth);
         setSprite(newSprite);

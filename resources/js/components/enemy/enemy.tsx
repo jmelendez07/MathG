@@ -3,6 +3,7 @@ import { Container, Sprite, Texture, Assets } from 'pixi.js'
 import { useEffect, useState } from 'react'
 import useEnemyAnimation from './useEnemyAnimation';
 import IEnemy from '@/types/enemy';
+import { useScreen } from '@/Providers/ScreenProvider';
 
 extend({ Container, Sprite })
 
@@ -14,6 +15,7 @@ interface IEnemyProps {
 
 export default function Enemy({ enemy, x, y }: IEnemyProps) {
 	const [texture, setTexture] = useState<Texture>(Texture.WHITE);
+	const { scale } = useScreen();
 
 	const { sprite, updateSprite } = useEnemyAnimation({
 		texture,
@@ -40,7 +42,7 @@ export default function Enemy({ enemy, x, y }: IEnemyProps) {
 			{sprite && (
 				<pixiSprite 
 					texture={sprite.texture}
-					scale={0.6}
+					scale={0.6 * scale}
 					anchor={0.5} 
 				/>
 			)}

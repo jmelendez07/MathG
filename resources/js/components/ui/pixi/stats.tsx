@@ -1,4 +1,5 @@
- import { useTeam } from '@/providers/team-provider';
+import { useScreen } from '@/providers/screen-provider';
+import { useTeam } from '@/providers/team-provider';
 import { extend } from '@pixi/react';
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import { useEffect, useState } from 'react';
@@ -7,6 +8,7 @@ extend({ Container, Sprite, Graphics, Text });
 
 export const StatsUI = () => {
     const { currentHero } = useTeam();
+    const { screenSize, scale } = useScreen();
     const [iconHeroRole, setIconHeroRole] = useState<Texture>();
     const healthPercentage = currentHero.current_health / currentHero.health;
 
@@ -15,9 +17,6 @@ export const StatsUI = () => {
             setIconHeroRole(texture);
         });
     }, [currentHero]);
-
-    const screenScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-    const scale = Math.max(0.6, Math.min(1.0, screenScale));
 
     const dimensions = {
         iconSize: 64 * scale,
@@ -45,8 +44,8 @@ export const StatsUI = () => {
         return 0xff7043;
     };
 
-    const containerX = window.innerWidth / 2;
-    const containerY = (window.innerHeight / 10) * 9 + 50;
+    const containerX = screenSize.width / 2;
+    const containerY = (screenSize.height / 10) * 9 + 50 * scale;
     const totalContentWidth = dimensions.iconSize + dimensions.spacing + dimensions.barWidth;
     const contentOffsetX = -totalContentWidth / 2;
 

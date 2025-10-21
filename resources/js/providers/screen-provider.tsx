@@ -25,7 +25,7 @@ export function ScreenProvider({ children, baseWidth, baseHeight }: ScreenProvid
     const baseSize = { width: baseWidth || 1920, height: baseHeight || 1080 };
 
     // Calcula la escala basada en el tamaño de la pantalla
-    const scale = Math.min(screenSize.width / baseSize.width, screenSize.height / baseSize.height);
+    const scale = (screenSize.width * 100 / 1920) / 100;
 
     const toggleFullscreen = async () => {
         if (!document.fullscreenElement) {

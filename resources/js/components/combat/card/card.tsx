@@ -1,7 +1,6 @@
+import { useScreen } from '@/Providers/ScreenProvider';
 import ICard from '@/types/card';
-import Hero from '@/types/hero';
 import { extend, useTick } from '@pixi/react';
-import { on } from 'events';
 import { Assets, ColorMatrixFilter, Container, Graphics, Sprite, Texture } from 'pixi.js';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -33,27 +32,6 @@ export const Card = ({
     isDisabled = false,
 }: ICardProps) => {
     const card1Asset = card.spritesheet;
-
-    // Calcular tamaño de carta basado en la pantalla
-    const getCardDimensions = () => {
-        const baseWidth = 200;
-        const baseHeight = 300;
-
-        // Factor de escala basado en el ancho de la pantalla
-        const screenScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-        const minScale = 0.6; // Escala mínima
-        const maxScale = 1.0; // Escala máxima
-        const scale = Math.max(minScale, Math.min(maxScale, screenScale));
-
-        return {
-            width: baseWidth * scale,
-            height: baseHeight * scale,
-            scale: scale,
-        };
-    };
-
-    const cardDimensions = getCardDimensions();
-
     const [card1Texture, setCard1Texture] = useState<Texture | null>(null);
     const [isPointerDown, setIsPointerDown] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -65,9 +43,26 @@ export const Card = ({
     const [currentHoverOffset, setCurrentHoverOffset] = useState(0);
     const [currentAlpha, setCurrentAlpha] = useState(0.8);
     const [currentTint, setCurrentTint] = useState(0x808080);
-    const targetHoverOffset = isHovered && !isPointerDown && !isDisabled ? -20 * cardDimensions.scale : 0;
     const targetAlpha = isDisabled ? 0.6 : isHovered || isPointerDown ? 1.0 : 0.8;
     const targetTint = isDisabled ? 0xffffff : isHovered || isPointerDown ? 0xffffff : 0x808080;
+
+    const { scale } = useScreen();
+
+    // Calcular tamaño de carta basado en la pantalla
+    const getCardDimensions = () => {
+        const baseWidth = 200 * scale;
+        const baseHeight = 300 * scale;
+
+        return {
+            width: baseWidth,
+            height: baseHeight,
+            scale: scale,
+        };
+    };
+
+    const cardDimensions = getCardDimensions();
+
+    const targetHoverOffset = isHovered && !isPointerDown && !isDisabled ? -20 * cardDimensions.scale : 0;
 
     const grayscaleFilter = useMemo(() => {
         const filter = new ColorMatrixFilter();
@@ -80,7 +75,7 @@ export const Card = ({
         y: cardPosition.y + currentHoverOffset,
     };
 
-    useTick((ticker) => {
+    useTick(() => {
         const lerpSpeed = 0.15;
 
         if (!isPointerDown) {
@@ -192,7 +187,7 @@ export const Card = ({
     const centerY = currentCardPosition.y + cardDimensions.height / 2;
 
     return (
-        <pixiContainer interactive={!isDisabled} onPointerDown={handlePointerDown} cursor={isDisabled ? 'default' : 'pointer'}>
+        <pixiContainer interactive={!isDisabled} onPointerDown={handlePointerDown} cursor={isDisabled ? 'default' : 'pointer'} zIndex={9999}>
             {card1Texture && (
                 <pixiSprite
                     width={cardDimensions.width}

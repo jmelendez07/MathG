@@ -5,6 +5,7 @@ import { EnemyUI } from '@/components/ui/pixi/enemy';
 import { HeroUI } from '@/components/ui/pixi/hero';
 import { Directions } from '@/enums/hero-directions';
 import { ALLOWED_KEYS, getPolygonCentroid, HERO_FRAME_SIZE, isPointInPolygon, MAP_SCALE } from '@/lib/utils';
+import { useScreen } from '@/Providers/ScreenProvider';
 import { useTeam } from '@/Providers/TeamProvider';
 import { SharedData } from '@/types';
 import Card from '@/types/card';
@@ -41,6 +42,7 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
     const [inCombat, setInCombat] = useState<boolean>(false);
     const [totalXpGained, setTotalXpGained] = useState(0);
     const [currentUserXp, setCurrentUserXp] = useState<number>(auth.user?.profile?.total_xp ?? 0);
+    const { scale, screenSize } = useScreen();
 
     const polygonPoints: [number, number][] = stage.points
         .map((p) => [p.x, p.y] as [number, number])
@@ -57,9 +59,9 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
     );
 
     const generateRandomCombatPosition = useCallback((index: number) => {
-        const baseX = window.innerWidth * 0.5;
-        const minY = window.innerHeight * (1 / 3);
-        const maxY = window.innerHeight * (2 / 3);
+        const baseX = screenSize.width * 0.5;
+        const minY = screenSize.height * (1 / 3);
+        const maxY = screenSize.height * (2 / 3);
         const baseY = minY + (maxY - minY) * 0.3;
 
         const spacing = 120;
@@ -74,10 +76,10 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
         const calculatedY = baseY + row * spacing + randomOffsetY;
 
         return {
-            x: Math.max(150, Math.min(baseX + col * spacing + randomOffsetX, window.innerWidth - 150)),
+            x: Math.max(150, Math.min(baseX + col * spacing + randomOffsetX, screenSize.width - 150)),
             y: Math.max(minY, Math.min(calculatedY, maxY - 50)),
         };
-    }, []);
+    }, [screenSize]);
 
     const keysLoop = useCallback(
         (delta: number) => {
@@ -197,10 +199,11 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
                 sprite.y = newY;
             }
 
-            camera.x = window.innerWidth / 2 - sprite.x;
-            camera.y = window.innerHeight / 2 - sprite.y;
+            camera.x = screenSize.width / 2 - sprite.x;
+            camera.y = screenSize.height / 2 - sprite.y;
+
         },
-        [keys, polygonPoints, isRunning, runTimeLeft, cooldownLeft, enemies],
+        [keys, polygonPoints, isRunning, runTimeLeft, cooldownLeft, enemies, screenSize],
     );
 
     const updateUserProfileLevel = async (newTotalXp: number) => {

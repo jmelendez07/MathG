@@ -1,21 +1,29 @@
+import { useScreen } from '@/Providers/ScreenProvider';
 import { useTeam } from '@/Providers/TeamProvider';
-import { Assets, Container, Texture } from 'pixi.js';
-import { useEffect, useRef, useState } from 'react';
-
-const itemHeight = 100;
-const gap = 10;
-const totalItemHeight = itemHeight + gap;
-const borderRadius = 50;
-const borderWidth = 3;
-const healthBarWidth = 80;
-const healthBarHeight = 8;
-const healthBarRadius = 4;
+import { Assets, Container, Texture, TextStyle } from 'pixi.js';
+import { useEffect, useRef, useState, useMemo } from 'react';
 
 export const HeroSelectionUI = () => {
     const { teamHeroes, currentHero } = useTeam();
+    const { screenSize, scale } = useScreen();
     const [heroAvatars, setHeroAvatars] = useState<Texture[]>([]);
     const [roleIcons, setRoleIcons] = useState<Texture[]>([]);
     const containerRef = useRef<Container>(null);
+
+    const itemHeight = 100 * scale;
+    const gap = 10 * scale;
+    const totalItemHeight = itemHeight + gap;
+    const borderRadius = 50 * scale;
+    const borderWidth = 3 * scale;
+    const healthBarWidth = 80 * scale;
+    const healthBarHeight = 8 * scale;
+    const healthBarRadius = 4 * scale;
+
+    const textStyle = useMemo(() => new TextStyle({
+        fill: 0xffffff,
+        fontSize: 28 * scale,
+        fontFamily: 'Jersey 10'
+    }), [scale]);
 
     useEffect(() => {
         const loadAvatars = async () => {
@@ -45,7 +53,7 @@ export const HeroSelectionUI = () => {
     };
 
     return (
-        <pixiContainer zIndex={1000} x={(window.innerWidth / 7) * 6} y={window.innerHeight / 8}>
+        <pixiContainer zIndex={1000} x={(screenSize.width / 7) * 6} y={screenSize.height / 8}>
             {heroAvatars.map((avatar, index) => {
                 const yPosition = index * totalItemHeight;
                 const hero = teamHeroes[index];
@@ -56,31 +64,61 @@ export const HeroSelectionUI = () => {
                         <pixiGraphics
                             draw={(g) => {
                                 g.clear();
-                                g.roundRect(0, 0, window.innerWidth / 7 + 50, itemHeight, borderRadius);
+                                g.roundRect(0, 0, screenSize.width / 7 + 50 * scale, itemHeight, borderRadius);
                                 g.fill({ color: 0x000000, alpha: currentHero.id === hero.id ? 0.6 : 0.3 });
                             }}
                         />
 
-                        <pixiText text={(index + 1) + '.'} x={20} y={itemHeight / 2 - 12} style={{ fill: 0xffffff, fontSize: 28, fontFamily: 'Jersey 10' }} resolution={2} />
-                        <pixiText text={hero.name} x={40} y={itemHeight / 2 - 12} style={{ fill: 0xffffff, fontSize: 28, fontFamily: 'Jersey 10' }} resolution={2} />
+                        <pixiText 
+                            text={(index + 1) + '.'} 
+                            x={20 * scale} 
+                            y={itemHeight / 2 - 12 * scale} 
+                            style={textStyle} 
+                            resolution={2} 
+                        />
+                        <pixiText 
+                            text={hero.name} 
+                            x={40 * scale} 
+                            y={itemHeight / 2 - 12 * scale} 
+                            style={textStyle} 
+                            resolution={2} 
+                        />
 
                         {currentHero.id === hero.id && (
                             <pixiGraphics
                                 draw={(g) => {
                                     g.clear();
-                                    g.roundRect(0, 0, window.innerWidth / 7 + 50, itemHeight, borderRadius);
+                                    g.roundRect(0, 0, screenSize.width / 7 + 50 * scale, itemHeight, borderRadius);
                                     g.stroke({ color: 0x9333ea, width: borderWidth });
                                 }}
                             />
                         )}
 
-                        <pixiSprite texture={avatar} x={150} y={15} width={64} height={64} />
-                        <pixiSprite texture={roleIcons[index]} x={135} y={20} width={16} height={16} />
+                        <pixiSprite 
+                            texture={avatar} 
+                            x={150 * scale} 
+                            y={15 * scale} 
+                            width={64 * scale} 
+                            height={64 * scale} 
+                        />
+                        <pixiSprite 
+                            texture={roleIcons[index]} 
+                            x={135 * scale} 
+                            y={20 * scale} 
+                            width={16 * scale} 
+                            height={16 * scale} 
+                        />
 
                         <pixiGraphics
                             draw={(g) => {
                                 g.clear();
-                                g.roundRect(150 + 32 - healthBarWidth / 2, 79 + 8, healthBarWidth, healthBarHeight, healthBarRadius);
+                                g.roundRect(
+                                    150 * scale + 32 * scale - healthBarWidth / 2, 
+                                    79 * scale + 8 * scale, 
+                                    healthBarWidth, 
+                                    healthBarHeight, 
+                                    healthBarRadius
+                                );
                                 g.fill({ color: 0x1a1a1a });
                             }}
                         />
@@ -88,9 +126,15 @@ export const HeroSelectionUI = () => {
                         <pixiGraphics
                             draw={(g) => {
                                 g.clear();
-                                const barWidth = (healthBarWidth - 4) * healthPercentage;
+                                const barWidth = (healthBarWidth - 4 * scale) * healthPercentage;
                                 if (barWidth > 0) {
-                                    g.roundRect(150 + 32 - healthBarWidth / 2 + 2, 79 + 8 + 2, barWidth, healthBarHeight - 4, healthBarRadius - 1);
+                                    g.roundRect(
+                                        150 * scale + 32 * scale - healthBarWidth / 2 + 2 * scale, 
+                                        79 * scale + 8 * scale + 2 * scale, 
+                                        barWidth, 
+                                        healthBarHeight - 4 * scale, 
+                                        healthBarRadius - 1 * scale
+                                    );
                                     g.fill({ color: getHealthColor(healthPercentage) });
                                 }
                             }}
@@ -99,9 +143,15 @@ export const HeroSelectionUI = () => {
                         <pixiGraphics
                             draw={(g) => {
                                 g.clear();
-                                const barWidth = (healthBarWidth - 4) * healthPercentage;
+                                const barWidth = (healthBarWidth - 4 * scale) * healthPercentage;
                                 if (barWidth > 0) {
-                                    g.roundRect(150 + 32 - healthBarWidth / 2 + 2, 79 + 8 + 2, barWidth, 2, healthBarRadius - 1);
+                                    g.roundRect(
+                                        150 * scale + 32 * scale - healthBarWidth / 2 + 2 * scale, 
+                                        79 * scale + 8 * scale + 2 * scale, 
+                                        barWidth, 
+                                        2 * scale, 
+                                        healthBarRadius - 1 * scale
+                                    );
                                     g.fill({ color: getHealthHighlight(healthPercentage), alpha: 0.6 });
                                 }
                             }}

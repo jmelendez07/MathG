@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { extend, useTick } from '@pixi/react';
 import { Container, Sprite, Graphics, Text, TextStyle, Assets, Texture } from 'pixi.js';
 import { router } from '@inertiajs/react';
-import { useScreen } from '@/Providers/ScreenProvider';
+import { useScreen } from '@/providers/screen-provider';
 
 extend({ Container, Sprite, Graphics, Text });
 

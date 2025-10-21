@@ -1,7 +1,7 @@
 import { Actions } from "@/enums/hero-actions";
 import { Directions } from "@/enums/hero-directions";
 import { getRow, HERO_FRAME_SIZE, HERO_MOVING_SPEED, HERO_MOVING_SPEED_RUNNING } from "@/lib/utils";
-import { useTeam } from "@/Providers/TeamProvider";
+import { useTeam } from "@/providers/team-provider";
 import { useTick } from "@pixi/react";
 import { Rectangle, Sprite, Texture } from "pixi.js";
 import { useCallback, useEffect, useRef, useState } from "react";

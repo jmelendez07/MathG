@@ -5,7 +5,7 @@ import { EnemyUI } from '@/components/ui/pixi/enemy';
 import { HeroUI } from '@/components/ui/pixi/hero';
 import { Directions } from '@/enums/hero-directions';
 import { ALLOWED_KEYS, getPolygonCentroid, HERO_FRAME_SIZE, isPointInPolygon, MAP_SCALE } from '@/lib/utils';
-import { useTeam } from '@/Providers/TeamProvider';
+import { useTeam } from '@/providers/team-provider';
 import { SharedData } from '@/types';
 import Card from '@/types/card';
 import Enemy from '@/types/enemy';

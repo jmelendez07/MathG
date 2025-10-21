@@ -1,4 +1,4 @@
- import { useTeam } from '@/Providers/TeamProvider';
+ import { useTeam } from '@/providers/team-provider';
 import { extend } from '@pixi/react';
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import { useEffect, useState } from 'react';

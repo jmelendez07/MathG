@@ -1,4 +1,4 @@
-import { useTeam } from '@/Providers/TeamProvider';
+import { useTeam } from '@/providers/team-provider';
 import { Assets, Container, Texture } from 'pixi.js';
 import { useEffect, useRef, useState } from 'react';
 

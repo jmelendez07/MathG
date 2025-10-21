@@ -18,10 +18,18 @@ import {
     Gamepad2,
     Medal,
     Swords,
-    ShieldPlus
+    ShieldPlus,
+    Menu,
+    X,
+    LogIn
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import {
+    Drawer,
+    DrawerContent,
+    DrawerTrigger,
+} from "@/components/ui/drawer";
 import PublicLayout from '@/layouts/public-layout';
 import Typewriter from '@/components/typewriter';
 import { useDraggable } from '@/hooks/use-draggable';
@@ -34,8 +42,9 @@ export default function Welcome() {
     const [isVisible, setIsVisible] = useState(false);
     const [showTypewriter, setShowTypewriter] = useState(true);
     const [showScrollToTop, setShowScrollToTop] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // ✅ Configurar múltiples elementos draggables
     const swordDrag = useDraggable({
         initialPosition: { 
             x: typeof window !== 'undefined' ? window.innerWidth - 160 : 300, 
@@ -53,15 +62,20 @@ export default function Welcome() {
     useEffect(() => {
         setIsVisible(true);
         
+        const checkTouchDevice = () => {
+            setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+        };
+        checkTouchDevice();
+
         const handleMouseMove = (e: MouseEvent) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
+            if (!isTouchDevice) {
+                setMousePosition({ x: e.clientX, y: e.clientY });
+            }
         };
 
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
             setScrollY(currentScrollY);
-            
-            // ✅ Mostrar botón cuando el usuario haya hecho scroll hacia abajo
             setShowScrollToTop(currentScrollY > window.innerHeight * 0.5);
         };
 
@@ -72,7 +86,7 @@ export default function Welcome() {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('scroll', handleScroll);
         };
-    }, []);
+    }, [isTouchDevice]);
 
     const features = [
         {
@@ -108,7 +122,6 @@ export default function Welcome() {
         { icon: Star, label: "Puntuación Promedio", value: "4.9/5" }
     ];
 
-    // ✅ Función para hacer scroll suave hacia arriba
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,
@@ -116,7 +129,6 @@ export default function Welcome() {
         });
     };
 
-    // ✅ Función para hacer scroll suave hacia la siguiente sección
     const scrollToNextSection = () => {
         const nextSection = document.querySelector('#features-section');
         if (nextSection) {
@@ -142,26 +154,25 @@ export default function Welcome() {
             </Head>
 
             <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800">
-                {/* Cursor personalizado con efecto */}
-                <div
-                    className="pointer-events-none fixed z-50 h-4 w-4 rounded-full bg-purple-400 mix-blend-difference transition-transform duration-100"
-                    style={{
-                        left: mousePosition.x - 8,
-                        top: mousePosition.y - 8,
-                        transform: `scale(${mousePosition.x > 0 ? 1.2 : 1})`,
-                    }}
-                />
+                {!isTouchDevice && (
+                    <div
+                        className="pointer-events-none fixed z-50 h-4 w-4 rounded-full bg-purple-400 mix-blend-difference transition-transform duration-100"
+                        style={{
+                            left: mousePosition.x - 8,
+                            top: mousePosition.y - 8,
+                            transform: `scale(${mousePosition.x > 0 ? 1.2 : 1})`,
+                        }}
+                    />
+                )}
 
-                {/* Elementos decorativos animados */}
                 <div className="absolute inset-0 overflow-hidden">
-                    {/* ✅ Zap draggable (reemplaza el elemento estático) */}
                     <div
                         ref={zapDrag.dragRef}
                         className={`absolute z-30 cursor-grab text-purple-300/20 transition-all duration-300 active:cursor-grabbing ${
                             zapDrag.isDragging ? 'scale-110 text-purple-300/40' : 'hover:scale-105 hover:text-purple-300/30'
                         }`}
                         style={{
-                            left: zapDrag.position.x - 64, // Centrar elemento (w-32 = 128px / 2)
+                            left: zapDrag.position.x - 64,
                             top: zapDrag.position.y - 64,
                             transform: `rotate(${zapDrag.isDragging ? scrollY * 0.05 : scrollY * 0.05}deg)`,
                             transition: zapDrag.isDragging ? 'none' : 'transform 1000ms',
@@ -171,7 +182,6 @@ export default function Welcome() {
                     >
                         <Zap className={`h-32 w-32 transition-all ${zapDrag.isDragging ? 'animate-none duration-300' : 'animate-pulse'}`} />
 
-                        {/* Indicador de que es draggable */}
                         {!zapDrag.isDragging && (
                             <div className="absolute -inset-2 rounded-lg border-2 border-dashed border-purple-300/20 opacity-0 transition-opacity duration-300 hover:opacity-100">
                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-black/50 px-2 py-1 text-xs whitespace-nowrap text-purple-300">
@@ -181,7 +191,6 @@ export default function Welcome() {
                         )}
                     </div>
 
-                    {/* ✅ Espada draggable (ya existente) */}
                     <div
                         ref={swordDrag.dragRef}
                         className={`absolute z-30 cursor-grab text-indigo-400/20 transition-all duration-300 active:cursor-grabbing ${
@@ -207,7 +216,6 @@ export default function Welcome() {
                         )}
                     </div>
 
-                    {/* Resto de elementos estáticos */}
                     <div
                         className="absolute bottom-40 left-10 text-purple-300/20 transition-transform duration-1000"
                         style={{ transform: `translateY(${scrollY * 0.08}px)` }}
@@ -221,7 +229,6 @@ export default function Welcome() {
                         <Calculator className="h-24 w-24 animate-spin" />
                     </div>
 
-                    {/* Partículas flotantes */}
                     {[...Array(12)].map((_, i) => (
                         <div
                             key={i}
@@ -237,24 +244,23 @@ export default function Welcome() {
                         </div>
                     ))}
 
-                    {/* Efectos de resplandor */}
                     <div className="absolute top-0 left-0 h-96 w-96 animate-pulse rounded-full bg-purple-500/20 blur-3xl" />
                     <div className="absolute right-0 bottom-0 h-96 w-96 animate-pulse rounded-full bg-indigo-500/20 blur-3xl delay-1000" />
                     <div className="absolute top-1/2 left-1/2 h-64 w-64 animate-pulse rounded-full bg-pink-500/10 blur-2xl delay-500" />
                 </div>
 
-                {/* Header */}
                 <header className="relative z-20 p-6">
                     <nav className="mx-auto flex max-w-7xl items-center justify-between">
                         <div
                             className={`flex items-center space-x-3 transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}
                         >
-                            <Crown className="h-10 w-10 animate-pulse text-purple-300" />
-                            <h1 className="font-jersey text-3xl md:text-4xl text-white">{name}</h1>
+                            <Crown className="size-6 md:h-10 md:w-10 animate-pulse text-purple-300" />
+                            <h1 className="font-jersey text-3xl lg:text-4xl text-white">{name}</h1>
                         </div>
 
+                        {/* Desktop Navigation */}
                         <div
-                            className={`flex items-center space-x-4 transition-all delay-200 duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}
+                            className={`hidden md:flex items-center space-x-4 transition-all delay-200 duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}
                         >
                             {auth.user ? (
                                 <Link
@@ -281,13 +287,13 @@ export default function Welcome() {
                                     <Link href={route('login')}>
                                         <Button
                                             variant="ghost"
-                                            className="font-jersey md:text-2xl cursor-pointer rounded-xl px-4 py-2 text-purple-200 transition-all duration-300 hover:bg-purple-600/20 hover:text-white"
+                                            className="font-jersey text-xl md:text-2xl cursor-pointer rounded-xl px-4 py-2 text-purple-200 transition-all duration-300 hover:bg-purple-600/20 hover:text-white"
                                         >
                                             Iniciar Sesión
                                         </Button>
                                     </Link>
                                     <Link href={route('register')}>
-                                        <Button className="font-jersey md:text-2xl transform cursor-pointer rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-2 text-white transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-purple-500/25">
+                                        <Button className="font-jersey text-xl md:text-2xl transform cursor-pointer rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-2 text-white transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-purple-500/25">
                                             <Crown className="mr-2 h-4 w-4" />
                                             Únete Ahora
                                         </Button>
@@ -295,20 +301,80 @@ export default function Welcome() {
                                 </>
                             )}
                         </div>
+
+                        {/* Mobile Navigation */}
+                        <div className="md:hidden">
+                            <Drawer open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                                <DrawerTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-purple-300 hover:bg-purple-600/20 hover:text-white"
+                                    >
+                                        <Menu className="size-7" />
+                                    </Button>
+                                </DrawerTrigger>
+                                <DrawerContent className="bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 border-purple-500/30">
+                                    <div className="px-4 pb-8">
+                                        <div className="flex flex-col space-y-4">
+                                            {auth.user ? (
+                                                <Link
+                                                    href={
+                                                        auth.user.roles.some((r) => r.name === Roles.Admin)
+                                                            ? route('dashboard')
+                                                            : auth.user.roles.some((r) => r.name === Roles.Teacher)
+                                                              ? route('rooms.index')
+                                                              : auth.user.roles.some((r) => r.name === Roles.Student)
+                                                                ? route('gameplay.index')
+                                                                : '#'
+                                                    }
+                                                    onClick={() => setIsMenuOpen(false)}
+                                                >
+                                                    <Button className="w-full justify-start rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 font-jersey text-lg text-white hover:from-purple-700 hover:to-indigo-700">
+                                                        { auth.user.roles.some(r => r.name === Roles.Student) 
+                                                            ? (<Play className="mr-2 h-5 w-5" />) 
+                                                            : (<Shield className="mr-2 h-5 w-5" />)
+                                                        }
+                                                        {auth.user.roles.some(r => r.name === Roles.Student) ? 'Seguir Jugando' : 'Ir al Panel'}
+                                                    </Button>
+                                                </Link>
+                                            ) : (
+                                                <>
+                                                    <Link href={route('login')} onClick={() => setIsMenuOpen(false)}>
+                                                        <div className="mt-6 rounded-lg bg-white/10 border-2 border-purple-400 px-4 py-2 backdrop-blur-sm">
+                                                            <div className="flex items-center justify-center space-x-2 text-purple-200">
+                                                                <LogIn className="size-4" />
+                                                                <span className="font-jersey text-xl font-extralight tracking-wider">Iniciar Sesión</span>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
+                                                    <Link href={route('register')} onClick={() => setIsMenuOpen(false)}>
+                                                        <div className="rounded-lg from-purple-600 to-indigo-600 border-2 hover:from-purple-700 hover:to-indigo-700 border-purple-400 px-4 py-2 backdrop-blur-sm">
+                                                            <div className="flex items-center justify-center space-x-2 text-purple-200">
+                                                                <Crown className="size-4" />
+                                                                <span className="font-jersey text-xl font-extralight tracking-wider">Únete Ahora</span>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </DrawerContent>
+                            </Drawer>
+                        </div>
                     </nav>
                 </header>
 
-                {/* Hero Section */}
                 <main className="relative z-10">
                     <section className="relative flex min-h-screen items-center justify-center px-6">
                         <div className="mx-auto max-w-6xl text-center">
-                            {/* Título principal con animación espectacular */}
                             <div
                                 className={`mb-8 transition-all delay-300 duration-1500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}
                             >
-                                <div className="mb-6 flex items-center justify-center">
+                                <div className="mb-2 md:mb-6 flex items-center justify-center">
                                     <Swords className="mr-4 h-16 w-16 animate-pulse text-purple-300" />
-                                    <h1 className="font-jersey text-6xl md:text-8xl lg:text-[10rem]">
+                                    <h1 className="font-jersey text-7xl md:text-8xl lg:text-[10rem]">
                                         <span className="animate-pulse bg-gradient-to-r from-purple-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent">
                                             {name}
                                         </span>
@@ -339,10 +405,9 @@ export default function Welcome() {
                             >
                                 {!auth.user && (
                                     <Link href={route('register')}>
-                                        <Button className="group transform cursor-pointer rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 px-8 py-4 font-jersey text-lg text-white transition-all duration-300 hover:scale-110 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 hover:shadow-2xl hover:shadow-purple-500/50 md:text-2xl">
-                                            <Play className="mr-3 h-6 w-6 group-hover:animate-pulse" />
+                                        <Button className="group transform cursor-pointer tracking-wider font-extralight rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 !px-6 py-4 font-jersey text-xl text-white transition-all duration-300 hover:scale-110 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 hover:shadow-2xl hover:shadow-purple-500/50 md:text-2xl">
                                             Comenzar Aventura
-                                            <ArrowRight className="ml-3 h-6 w-6 transition-transform group-hover:translate-x-1" />
+                                            <ArrowRight className="ml-1 h-6 w-6 transition-transform group-hover:translate-x-1" />
                                         </Button>
                                     </Link>
                                 )}

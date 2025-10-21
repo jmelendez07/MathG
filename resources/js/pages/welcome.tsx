@@ -255,10 +255,9 @@ export default function Welcome() {
                             className={`flex items-center space-x-3 transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}
                         >
                             <Crown className="size-6 md:h-10 md:w-10 animate-pulse text-purple-300" />
-                            <h1 className="font-jersey text-3xl lg:text-4xl text-white">{name}</h1>
+                            <h1 className="font-jersey text-3xl leading-6 lg:text-4xl text-white">{name}</h1>
                         </div>
 
-                        {/* Desktop Navigation */}
                         <div
                             className={`hidden md:flex items-center space-x-4 transition-all delay-200 duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}
                         >
@@ -287,13 +286,13 @@ export default function Welcome() {
                                     <Link href={route('login')}>
                                         <Button
                                             variant="ghost"
-                                            className="font-jersey text-xl md:text-2xl cursor-pointer rounded-xl px-4 py-2 text-purple-200 transition-all duration-300 hover:bg-purple-600/20 hover:text-white"
+                                            className="font-jersey text-xl cursor-pointer tracking-wider rounded-xl px-4 py-2 text-purple-200 transition-all duration-300 hover:bg-purple-600/20 hover:text-white"
                                         >
                                             Iniciar Sesión
                                         </Button>
                                     </Link>
                                     <Link href={route('register')}>
-                                        <Button className="font-jersey text-xl md:text-2xl transform cursor-pointer rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-2 text-white transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-purple-500/25">
+                                        <Button className="font-jersey text-xl tracking-wider transform cursor-pointer rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-2 text-white transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-purple-500/25">
                                             <Crown className="mr-2 h-4 w-4" />
                                             Únete Ahora
                                         </Button>
@@ -302,7 +301,6 @@ export default function Welcome() {
                             )}
                         </div>
 
-                        {/* Mobile Navigation */}
                         <div className="md:hidden">
                             <Drawer open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                                 <DrawerTrigger asChild>
@@ -427,7 +425,7 @@ export default function Welcome() {
                                 onClick={scrollToNextSection}
                             >
                                 <ChevronDown className="mx-auto h-8 w-8 text-purple-300 hover:animate-pulse" />
-                                <p className="mt-2 font-jersey text-sm text-purple-300 md:text-2xl">Descubre más</p>
+                                <p className="mt-2 font-jersey text-lg text-purple-300 md:text-2xl leading-4 tracking-wider">Descubre más</p>
                             </div>
                         </div>
                     </section>

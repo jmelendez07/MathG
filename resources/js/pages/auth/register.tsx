@@ -28,6 +28,7 @@ export default function Register() {
         password: '',
         password_confirmation: '',
     });
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -37,7 +38,13 @@ export default function Register() {
     };
 
     useEffect(() => {
+        const checkTouchDevice = () => {
+            setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+        };
+        checkTouchDevice();
+
         const handleMouseMove = (e: MouseEvent) => {
+            if (isTouchDevice) return;
             setMousePosition({ x: e.clientX, y: e.clientY });
         };
 
@@ -53,16 +60,17 @@ export default function Register() {
             <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-purple-900 relative overflow-hidden">
                 <Head title="Registro" />
 
-                <div 
-                    className="fixed w-4 h-4 bg-purple-400 rounded-full pointer-events-none z-50 mix-blend-difference transition-transform duration-100"
-                    style={{
-                        left: mousePosition.x - 8,
-                        top: mousePosition.y - 8,
-                        transform: `scale(${mousePosition.x > 0 ? 1.2 : 1})`
-                    }}
-                />
+                {!isTouchDevice && (
+                    <div 
+                        className="fixed w-4 h-4 bg-purple-400 rounded-full pointer-events-none z-50 mix-blend-difference transition-transform duration-100"
+                        style={{
+                            left: mousePosition.x - 8,
+                            top: mousePosition.y - 8,
+                            transform: `scale(${mousePosition.x > 0 ? 1.2 : 1})`
+                        }}
+                    />
+                )}
                 
-                {/* Elementos decorativos de fondo */}
                 <div className="absolute inset-0">
                     <div className="absolute top-10 right-10 text-indigo-300/20">
                         <Crown className="w-32 h-32 animate-pulse delay-500" />
@@ -76,8 +84,6 @@ export default function Register() {
                     <div className="absolute bottom-10 left-10 text-purple-400/20">
                         <Sparkles className="w-20 h-20 animate-spin" />
                     </div>
-                    
-                    {/* Partículas flotantes */}
                     <div className="absolute top-1/3 left-1/4">
                         <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse delay-200" />
                     </div>
@@ -92,29 +98,24 @@ export default function Register() {
                     </div>
                 </div>
 
-                <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
+                <div className="relative z-10 flex items-center justify-center min-h-screen p-3 md:p-6">
                     <div className="w-full max-w-md">
-                        {/* Header épico */}
                         <div className="text-center mb-8">
-                            <Link href={route('home')} className="flex items-center justify-center mb-4">
+                            <Link href={route('home')} className="flex items-center justify-center">
                                 <Shield className="w-12 h-12 text-indigo-300 mr-3 animate-pulse" />
-                                <h1 className="text-4xl font-jersey md:text-5xl lg:text-8xl text-white">{name}</h1>
+                                <h1 className="text-6xl font-jersey lg:text-8xl text-white">{name}</h1>
                                 <Sword className="w-12 h-12 text-purple-300 ml-3 animate-pulse" />
                             </Link>
-                            <h2 className="text-2xl font-jersey text-indigo-200 mb-2">Forja tu Leyenda</h2>
-                            <p className="text-purple-300">Crea tu cuenta y únete a la aventura épica</p>
+                            <p className="text-xl px-2 font-jersey md:text-3xl text-purple-200 mb-2 tracking-wider">Crea tu cuenta y únete a la aventura épica</p>
                         </div>
 
-                        {/* Card principal con efecto glassmorphism */}
-                        <div className="bg-white/10 backdrop-blur-lg border border-indigo-300/30 rounded-2xl p-8 shadow-2xl">
+                        <div className="bg-white/10 backdrop-blur-lg border border-indigo-300/30 rounded-2xl py-8 px-4 md:p-8 shadow-2xl">
                             <form className="space-y-6" onSubmit={submit}>
-                                {/* Campo Nombre */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="name" className="text-indigo-200 font-medium">
+                                    <Label htmlFor="name" className="font-jersey text-xl leading-4 tracking-wider text-purple-100">
                                         Nombre de Héroe
                                     </Label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-300" />
                                         <Input
                                             id="name"
                                             type="text"
@@ -125,20 +126,18 @@ export default function Register() {
                                             value={data.name}
                                             onChange={(e) => setData('name', e.target.value)}
                                             disabled={processing}
-                                            placeholder="Tu nombre de héroe"
-                                            className="bg-white/20 border-indigo-300/50 text-white placeholder:text-purple-300 focus:border-indigo-400 focus:ring-indigo-400/50 rounded-xl h-12 pl-12"
+                                            placeholder="Dime tu nombre"
+                                            className="font-jersey text-lg md:text-xl leading-4 tracking-wider font-extralight bg-white/20 border-purple-300/50 text-white placeholder:text-purple-300 focus:border-purple-400 focus:ring-purple-400/50 rounded-xl h-12 pr-12"
                                         />
                                     </div>
-                                    <InputError message={errors.name} />
+                                    <InputError className='text-red-400 !leading-4 font-jersey text-lg' message={errors.name} />
                                 </div>
 
-                                {/* Campo Email */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="email" className="text-indigo-200 font-medium">
+                                    <Label htmlFor="email" className="font-jersey text-xl leading-4 tracking-wider text-purple-100">
                                         Correo Electrónico
                                     </Label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-300" />
                                         <Input
                                             id="email"
                                             type="email"
@@ -149,19 +148,17 @@ export default function Register() {
                                             onChange={(e) => setData('email', e.target.value)}
                                             disabled={processing}
                                             placeholder="correo@ejemplo.com"
-                                            className="bg-white/20 border-indigo-300/50 text-white placeholder:text-purple-300 focus:border-indigo-400 focus:ring-indigo-400/50 rounded-xl h-12 pl-12"
+                                            className="font-jersey text-lg md:text-xl leading-4 tracking-wider font-extralight bg-white/20 border-purple-300/50 text-white placeholder:text-purple-300 focus:border-purple-400 focus:ring-purple-400/50 rounded-xl h-12 pr-12"
                                         />
                                     </div>
-                                    <InputError message={errors.email} />
+                                    <InputError className='text-red-400 !leading-4 font-jersey text-lg' message={errors.email} />
                                 </div>
 
-                                {/* Campo Password */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="password" className="text-indigo-200 font-medium">
+                                    <Label htmlFor="password" className="font-jersey text-xl leading-4 tracking-wider text-purple-100">
                                         Contraseña Secreta
                                     </Label>
                                     <div className="relative">
-                                        <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-300" />
                                         <Input
                                             id="password"
                                             type={showPassword ? "text" : "password"}
@@ -172,7 +169,7 @@ export default function Register() {
                                             onChange={(e) => setData('password', e.target.value)}
                                             disabled={processing}
                                             placeholder="Contraseña segura"
-                                            className="bg-white/20 border-indigo-300/50 text-white placeholder:text-purple-300 focus:border-indigo-400 focus:ring-indigo-400/50 rounded-xl h-12 pl-12 pr-12"
+                                            className="font-jersey text-lg md:text-xl leading-4 tracking-wider font-extralight bg-white/20 border-purple-300/50 text-white placeholder:text-purple-300 focus:border-purple-400 focus:ring-purple-400/50 rounded-xl h-12 pr-12"
                                         />
                                         <button
                                             type="button"
@@ -182,16 +179,14 @@ export default function Register() {
                                             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
                                     </div>
-                                    <InputError message={errors.password} />
+                                    <InputError className='text-red-400 !leading-4 font-jersey text-lg' message={errors.password} />
                                 </div>
 
-                                {/* Campo Password Confirmation */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="password_confirmation" className="text-indigo-200 font-medium">
+                                    <Label htmlFor="password_confirmation" className="font-jersey text-xl leading-4 tracking-wider text-purple-100">
                                         Confirma tu Contraseña
                                     </Label>
                                     <div className="relative">
-                                        <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-300" />
                                         <Input
                                             id="password_confirmation"
                                             type={showPasswordConfirmation ? "text" : "password"}
@@ -202,7 +197,7 @@ export default function Register() {
                                             onChange={(e) => setData('password_confirmation', e.target.value)}
                                             disabled={processing}
                                             placeholder="Repite la contraseña"
-                                            className="bg-white/20 border-indigo-300/50 text-white placeholder:text-purple-300 focus:border-indigo-400 focus:ring-indigo-400/50 rounded-xl h-12 pl-12 pr-12"
+                                            className="font-jersey text-lg md:text-xl leading-4 tracking-wider font-extralight bg-white/20 border-purple-300/50 text-white placeholder:text-purple-300 focus:border-purple-400 focus:ring-purple-400/50 rounded-xl h-12 pr-12"
                                         />
                                         <button
                                             type="button"
@@ -212,13 +207,12 @@ export default function Register() {
                                             {showPasswordConfirmation ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
                                     </div>
-                                    <InputError message={errors.password_confirmation} />
+                                    <InputError className='text-red-400 !leading-4 font-jersey text-lg' message={errors.password_confirmation} />
                                 </div>
 
-                                {/* Botón de Registro épico */}
                                 <Button 
                                     type="submit" 
-                                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white font-jersey py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/25 cursor-pointer h-12" 
+                                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-jersey text-xl tracking-wider md:text-2xl py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 cursor-pointer h-12" 
                                     tabIndex={5} 
                                     disabled={processing}
                                 >
@@ -235,22 +229,11 @@ export default function Register() {
                                     )}
                                 </Button>
 
-                                {/* Divider */}
-                                <div className="relative my-6">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-indigo-300/30"></div>
-                                    </div>
-                                    <div className="relative flex justify-center text-sm">
-                                        <span className="bg-transparent px-4 text-indigo-300">o</span>
-                                    </div>
-                                </div>
-
-                                {/* Link de login */}
-                                <div className="text-center">
-                                    <span className="text-indigo-300">¿Ya tienes una cuenta? </span>
+                                <div className="text-center flex flex-col items-center">
+                                    <span className="text-purple-300 font-jersey tracking-widest leading-4">¿Ya tienes una cuenta?</span>
                                     <TextLink 
                                         href={route('login')} 
-                                        className="text-indigo-200 hover:text-white font-semibold transition-colors"
+                                        className="text-purple-100 hover:text-white tracking-widest leading-4 text-lg transition-colors font-jersey"
                                         tabIndex={6}
                                     >
                                         Inicia tu aventura
@@ -259,16 +242,14 @@ export default function Register() {
                             </form>
                         </div>
 
-                        {/* Footer */}
                         <div className="text-center mt-8">
-                            <p className="text-indigo-400 text-sm">
+                            <p className="text-purple-300 font-[100] tracking-wider font-jersey text-lg">
                                 Tu aventura épica está a punto de comenzar
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Efecto de resplandor en las esquinas */}
                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
             </div>

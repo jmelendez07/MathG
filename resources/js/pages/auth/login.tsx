@@ -101,12 +101,12 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                 <div className="relative z-10 flex items-center justify-center min-h-screen p-3 md:p-6">
                     <div className="w-full max-w-md">
                         <div className="text-center mb-8">
-                            <Link href={route('home')} className="flex items-center justify-center mb-0">
+                            <Link href={route('home')} className="flex items-center justify-center">
                                 <Swords className="w-12 h-12 text-purple-300 mr-3 animate-pulse" />
                                 <h1 className="text-6xl font-jersey lg:text-8xl text-white">{name}</h1>
                                 <ShieldPlus className="w-12 h-12 text-purple-300 ml-3 animate-pulse" />
                             </Link>
-                            <h2 className="text-2xl font-jersey md:text-3xl text-purple-200 mb-2">Bienvenido, Héroe</h2>
+                            <h2 className="text-2xl font-jersey md:text-3xl text-purple-200 mb-2 tracking-wider">Bienvenido, Héroe</h2>
                         </div>
 
                         <div className="bg-white/10 backdrop-blur-lg border border-purple-300/30 rounded-2xl py-8 px-4 md:p-8 shadow-2xl">
@@ -129,7 +129,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             className="font-jersey text-lg md:text-xl leading-4 tracking-wider font-extralight bg-white/20 border-purple-300/50 text-white placeholder:text-purple-300 focus:border-purple-400 focus:ring-purple-400/50 rounded-xl h-12"
                                         />
                                     </div>
-                                    <InputError message={errors.email} />
+                                    <InputError className="text-red-400 !leading-4 font-jersey text-lg" message={errors.email} />
                                 </div>
 
                                 <div className="space-y-2">
@@ -167,7 +167,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
                                     </div>
-                                    <InputError message={errors.password} />
+                                    <InputError className='text-red-400 !leading-4 font-jersey text-lg' message={errors.password} />
                                 </div>
 
                                 <div className="flex items-center space-x-3">

@@ -1,5 +1,5 @@
 import useEnemyAnimation from "@/components/enemy/useEnemyAnimation";
-import { useScreen } from "@/Providers/ScreenProvider";
+import { useScreen } from "@/providers/screen-provider";
 import Enemy from "@/types/enemy";
 import { useTick } from "@pixi/react";
 import { Assets, Texture } from "pixi.js";

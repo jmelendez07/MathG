@@ -1,4 +1,4 @@
-import { useScreen } from '@/Providers/ScreenProvider';
+import { useScreen } from '@/providers/screen-provider';
 import ICard from '@/types/card';
 import { extend, useTick } from '@pixi/react';
 import { Assets, ColorMatrixFilter, Container, Graphics, Sprite, Texture } from 'pixi.js';

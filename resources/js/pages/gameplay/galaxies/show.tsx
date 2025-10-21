@@ -1,7 +1,7 @@
 import Planet from '@/components/gameplay/galaxies/planet';
 import Stage from '@/components/gameplay/planets/stage';
 import { calculateCanvasSize } from '@/components/helpers/common';
-import { useScreen } from '@/Providers/ScreenProvider';
+import { useScreen } from '@/providers/screen-provider';
 import Galaxy from '@/types/galaxy';
 import IPlanet, { Stage as IStage } from '@/types/planet';
 import { Application, extend } from '@pixi/react';

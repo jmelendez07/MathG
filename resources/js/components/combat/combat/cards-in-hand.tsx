@@ -1,6 +1,6 @@
+import { useScreen } from '@/providers/screen-provider';
 import ICard from '@/types/card';
 import { Card } from '../card/card';
-import { useScreen } from '@/Providers/ScreenProvider';
 
 interface ICardsInHandProps {
     cards: ICard[];
@@ -23,7 +23,6 @@ export default function CardsInHand({
     setCurrentHeroInCombatId,
     isDisabled,
 }: ICardsInHandProps) {
-
     const { scale, screenSize } = useScreen();
     // Calcular espaciado y posición basado en el tamaño de pantalla
     const getCardLayout = () => {

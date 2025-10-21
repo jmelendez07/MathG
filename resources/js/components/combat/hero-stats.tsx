@@ -1,8 +1,8 @@
+import { useScreen } from '@/providers/screen-provider';
+import Hero from '@/types/hero';
 import { extend, useTick } from '@pixi/react';
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import { useEffect, useState } from 'react';
-import Hero from '@/types/hero';
-import { useScreen } from '@/Providers/ScreenProvider';
 
 extend({ Container, Sprite, Graphics, Text });
 
@@ -16,12 +16,10 @@ interface HeroStatsProps {
 }
 
 const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, currentEnergy }: HeroStatsProps) => {
-
     const { scale, screenSize } = useScreen();
 
     // Calcular dimensiones responsivas
     const getResponsiveDimensions = () => {
-
         return {
             scale,
             heroSize: 128 * scale,
@@ -44,7 +42,7 @@ const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, cu
     };
 
     const dimensions = getResponsiveDimensions();
-    
+
     // ✅ Posición por defecto en la esquina inferior izquierda
     const defaultPosition = {
         x: 20 * dimensions.scale,
@@ -57,7 +55,6 @@ const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, cu
     const [isHeroHovered, setIsHeroHovered] = useState(false);
     const [currentHeroAvatar, setCurrentHeroAvatar] = useState<Texture>(Texture.EMPTY);
     const healthPercentage = animatedHp / maxHp;
-
 
     useEffect(() => {
         const loadCurrentHeroAvatar = async () => {
@@ -97,8 +94,8 @@ const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, cu
 
     const floatOffset = Math.sin(floatAnimation) * 3 * dimensions.scale;
 
-    const xPos =  defaultPosition.x;
-    const yPos =  defaultPosition.y;
+    const xPos = defaultPosition.x;
+    const yPos = defaultPosition.y;
 
     return (
         <pixiContainer x={xPos} y={yPos + floatOffset}>

@@ -1,4 +1,4 @@
-import { useScreen } from "@/Providers/ScreenProvider";
+import { useScreen } from "@/providers/screen-provider";
 import { Stage } from "@/types/planet";
 import { Assets, Texture, TextStyle } from "pixi.js";
 import { useEffect, useState, useMemo } from "react";

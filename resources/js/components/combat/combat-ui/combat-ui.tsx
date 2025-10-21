@@ -1,4 +1,4 @@
-import { useScreen } from '@/Providers/ScreenProvider';
+import { useScreen } from '@/providers/screen-provider';
 import Hero from '@/types/hero';
 import { Stage } from '@/types/planet';
 import { Assets, Texture } from 'pixi.js';

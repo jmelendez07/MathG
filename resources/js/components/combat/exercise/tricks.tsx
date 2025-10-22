@@ -1,3 +1,4 @@
+import { useScreen } from '@/providers/screen-provider';
 import Exercise, { Option } from '@/types/exercise';
 import { extend } from '@pixi/react';
 import { Assets, Container, Point, Sprite, Text, Texture } from 'pixi.js';
@@ -19,9 +20,10 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
     const assetBg = '/assets/ui/tricks-ui.png';
     const [bgTexture, setBgTexture] = useState<Texture | null>(null);
     const containerRef = useRef<Container>(null);
+    const {scale, screenSize} = useScreen();
 
     // Geometría del panel
-    const panelHeight = window.innerHeight / 3 + 100;
+    const panelHeight = screenSize.width / 3 + 100;
 
     // Refs de animación
     const isClosingRef = useRef(false);
@@ -39,11 +41,11 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
         if (!c || !c.parent) return;
 
         // Posición objetivo en coordenadas globales y luego a locales del parent
-        const globalTarget = new Point(0, window.innerHeight / 3);
+        const globalTarget = new Point(0, screenSize.height / 3);
         const localTarget = c.parent.toLocal(globalTarget);
 
         // Posición inicial/final: completamente por debajo de la pantalla
-        const globalOffscreen = new Point(0, window.innerHeight + panelHeight);
+        const globalOffscreen = new Point(0, screenSize.height + panelHeight);
         const localOffscreen = c.parent.toLocal(globalOffscreen);
 
         targetLocalPos.current = { x: localTarget.x, y: localTarget.y };
@@ -138,18 +140,19 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
 
     return (
         <pixiContainer ref={containerRef} zIndex={3} interactive={true}>
-            {bgTexture && <pixiSprite texture={bgTexture} x={0} y={window.innerHeight / 3 - 100} width={window.innerWidth} height={panelHeight} />}
+            {bgTexture && <pixiSprite texture={bgTexture} x={0} y={screenSize.height / 3 - 100} width={screenSize.width} height={panelHeight} />}
 
             <pixiText
                 text="↓"
                 cursor="pointer"
                 interactive={true}
                 onClick={handleClose}
-                x={window.innerWidth / 2}
-                y={window.innerHeight / 3 - 90}
+                onTap={handleClose}
+                x={screenSize.width / 2}
+                y={screenSize.height / 3 - 90}
                 zIndex={10000}
                 style={{
-                    fontSize: 32,
+                    fontSize: 32 * scale,
                     fill: 0xffffff,
                     fontFamily: 'Arial',
                     fontWeight: 'bold',
@@ -158,10 +161,10 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
 
             <pixiText
                 text={selectedOption ? `La opcion "${selectedOption.result}" es incorrecta:` : 'Select an option to see tricks.'}
-                x={20}
-                y={window.innerHeight / 3 - 60}
+                x={25 * scale}
+                y={screenSize.height / 3 - 60}
                 style={{
-                    fontSize: 24,
+                    fontSize: 24 * scale,
                     fill: 0xffffff,
                     fontFamily: 'Arial',
                     fontWeight: 'bold',
@@ -172,14 +175,14 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
                 text={
                     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
                 }
-                x={20}
-                y={window.innerHeight / 3 - 20}
+                x={25 * scale}
+                y={screenSize.height / 3 - 20}
                 style={{
-                    fontSize: 18,
+                    fontSize: 18 * scale,
                     fill: 0xffffff,
                     fontFamily: 'Arial',
                     wordWrap: true,
-                    wordWrapWidth: window.innerWidth - 40,
+                    wordWrapWidth: screenSize.width - 40,
                 }}
             />
         </pixiContainer>

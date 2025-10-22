@@ -318,7 +318,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                         draw={(g) => {
                             g.clear();
                             g.rect(enemy.combat_position?.x || 0, enemy.combat_position?.y || 0, 128 * scale, 128 * scale);
-                            g.stroke({ color: isTargetAssigned && selectedEnemy?.id === enemy.id ? 0x00ff00 : 0xff0000, width: 5 });
+                            g.stroke({ color: isTargetAssigned && selectedEnemy?.id === enemy.id ? 0x00ff00 : 0xff0000, width: 5 * scale });
                         }}
                     />
                 ))}

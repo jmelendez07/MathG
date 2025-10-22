@@ -82,8 +82,7 @@ jobs:
           package: .
           
       - name: Upload Nginx config to /home
-        uses: azure/appservice-actions@v1
+        uses: azure/CLI@v1
         with:
-          app-name: 'math-g'
           inlineScript: |
-            cp /home/site/wwwroot/deploy/nginx/default /home/default
+            az webapp ssh --name math-g --resource-group MathG --command "cp /home/site/wwwroot/deploy/nginx/default /home/default"

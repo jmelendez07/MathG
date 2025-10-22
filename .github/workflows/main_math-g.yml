@@ -33,6 +33,24 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build assets with Vite
+        run: npm run build
+        env:
+          VITE_APP_NAME: MathG
+          VITE_PUSHER_APP_KEY: eb676c8e7df5ce5c1b35
+          VITE_PUSHER_APP_CLUSTER: us2
+          VITE_PUSHER_SCHEME: https
+          VITE_PUSHER_HOST: ""
+          VITE_PUSHER_PORT: "443"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -56,9 +74,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_C7CE1B756AFC452A95C37E83A1D9BF36 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_19A23CD648404F0694A95AF8B53BFCF6 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5AAB482C39A34A9D8EA93DB2AE31BA15 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B5FF28B03F6E4715992BD23305740398 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FA35901D338E450A96517811B680BD4C }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_935189DEF84E468584640AE7D6987E53 }}
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
@@ -67,4 +85,3 @@ jobs:
           app-name: 'math-g'
           slot-name: 'Production'
           package: .
-          

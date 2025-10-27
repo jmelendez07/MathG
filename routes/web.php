@@ -17,12 +17,15 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\StageController;
 use App\Http\Controllers\StageVectorPointController;
 use App\Http\Controllers\UserLogController;
+use App\Http\Controllers\ChatBotController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
+
+Route::post('chatbot/message', [ChatBotController::class, 'message'])->name('chatbot.message');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:estudiante'])->group(function () {

@@ -1,5 +1,4 @@
 import { usePage } from '@inertiajs/react';
-import AppLogoIcon from './app-logo-icon';
 
 export default function AppLogo() {
 
@@ -7,9 +6,7 @@ export default function AppLogo() {
 
     return (
         <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
-            </div>
+            <img src='https://res.cloudinary.com/dvibz13t8/image/upload/v1762190000/logo_zweior.png' alt='MathG' className='h-10' />
             <div className="ml-1 grid flex-1 text-left text-sm">
                 <span className="truncate leading-tight text-lg font-semibold">{ name }</span>
             </div>

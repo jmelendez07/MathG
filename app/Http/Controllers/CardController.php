@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Card;
 use App\Models\Exercise;
 use App\Models\TypeCard;
+use App\Traits\LogsUserActivity;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class CardController extends Controller
 {
+    use LogsUserActivity;
+
     public function index()
     {
         $cards = Card::with('type')->get();
@@ -28,6 +32,8 @@ class CardController extends Controller
 
     public function store(Request $request)
     {
+        $startTime = microtime(true);
+
         $request->validate([
             'name' => 'required|string|max:255|unique:cards',
             'energy_cost' => 'required|integer|min:0',
@@ -35,12 +41,27 @@ class CardController extends Controller
             'type_id' => 'required|exists:type_cards,_id',
         ]);
 
-        Card::create([
+        $card = Card::create([
             'name' => $request->name,
             'energy_cost' => $request->energy_cost,
             'stats' => $request->stats,
             'type_card_id' => $request->type_id,
         ]);
+
+        $user = Auth::user();
+
+        $this->logActivity(
+            $request,
+            'Nueva carta ' . $card->name . ' creada',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         return redirect()->route('cards.index')->with('success', 'Carta creada exitosamente.');
     }
@@ -63,9 +84,10 @@ class CardController extends Controller
         return redirect()->route('cards.index');
     }
 
-
     public function update(Request $request, $cardId)
     {
+        $startTime = microtime(true);
+
         $request->validate([
             'name' => 'required|string|max:255|unique:cards,name,' . $cardId,
             'energy_cost' => 'required|integer|min:0',
@@ -81,13 +103,45 @@ class CardController extends Controller
             'type_card_id' => $request->type_id,
         ]);
 
+        $user = Auth::user();
+
+        $this->logActivity(
+            $request,
+            'Carta ' . $card->name . ' actualizada',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         return redirect()->back()->with('success', 'Carta actualizada exitosamente.');
     }
 
-    public function destroy($cardId)
+    public function destroy(Request $request, $cardId)
     {
+        $startTime = microtime(true);
+
         $card = Card::findOrFail($cardId);
         $card->delete();
+
+        $user = Auth::user();
+
+        $this->logActivity(
+            $request,
+            'Carta ' . $card->name . ' eliminada',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         return redirect()->route('cards.index')->with('success', 'Carta eliminada exitosamente.');
     }

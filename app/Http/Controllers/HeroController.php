@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Hero;
+use App\Traits\LogsUserActivity;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 
 class HeroController extends Controller
 {
+    use LogsUserActivity;
+
     public function index()
     {
         $heroes = Hero::orderByDesc('updated_at')->get();
@@ -20,6 +23,8 @@ class HeroController extends Controller
 
     public function store(Request $request)
     {
+        $startTime = microtime(true);
+
         $request->validate([
             'name' => 'required|string|max:255|unique:heroes,name',
             'spritesheet' => 'required|image|mimes:jpg,jpeg,png|max:2048',
@@ -32,11 +37,27 @@ class HeroController extends Controller
             'health' => $request->health,
         ]);
 
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Nuevo heroe ' . $hero->name . ' creado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         return redirect()->route('heroes.index')->with('success', 'Heroe ' . $hero->name . ' creado exitosamente.');
     }
 
     public function update(Request $request, $heroId)
     {
+        $startTime = microtime(true);
+
         $request->validate([
             'name' => 'required|string|max:255|unique:heroes,name,' . $heroId,
             'spritesheet' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -50,13 +71,42 @@ class HeroController extends Controller
             'health' => $request->health,
         ]);
 
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Heroe ' . $hero->name . ' creado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         return redirect()->route('heroes.index')->with('success', 'Heroe ' . $hero->name . ' actualizado exitosamente.');
     }
 
-    public function destroy($heroId)
+    public function destroy(Request $request, $heroId)
     {
+        $startTime = microtime(true);
         $hero = Hero::findOrFail($heroId);
         $hero->delete();
+
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Heroe ' . $hero->name . ' eliminado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         return redirect()->route('heroes.index')->with('success', 'Heroe ' . $hero->name . ' eliminado exitosamente.');
     }

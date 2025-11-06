@@ -14,7 +14,10 @@ class ChatBotController extends Controller
             'message' => 'required|string|max:200',
         ]);
 
-        $result = Gemini::generativeModel(model: config('gemini.api_model'))->generateContent($request->input('message'));
+        $systemPrompt = "Eres un asistente virtual de [NOMBRE DE TU APP]. Tu rol es ayudar a los usuarios con [DESCRIPCIÓN DE LA FUNCIONALIDAD]. Siempre responde de manera amigable, profesional y concisa.";
+        $fullMessage = $systemPrompt . "\n\nUsuario: " . $request->input('message');
+
+        $result = Gemini::generativeModel(model: config('gemini.api_model'))->generateContent($fullMessage);
 
         return response()->json([
             'data' => $result->text(),

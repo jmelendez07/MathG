@@ -46,11 +46,11 @@ const gameplayNavItems: NavItem[] = [
         href: route('exercises.index'),
         icon: Dumbbell,
     },
-    {
-        title: 'Cartas',
-        href: route('cards.index'),
-        icon: GalleryHorizontalEnd,
-    },
+    // {
+    //     title: 'Cartas',
+    //     href: route('cards.index'),
+    //     icon: GalleryHorizontalEnd,
+    // },
     {
         title: 'Enemigos',
         href: route('enemies.index'),

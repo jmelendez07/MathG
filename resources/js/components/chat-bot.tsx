@@ -5,6 +5,10 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 interface Message {
     id: string;
@@ -178,7 +182,22 @@ export default function Chatbot() {
                                                         : 'bg-white/10 text-purple-100 backdrop-blur-sm'
                                                 }`}
                                             >
-                                                <p className="text-sm">{message.text}</p>
+                                                <div className="text-sm prose prose-invert max-w-none">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkMath]}
+                                                        rehypePlugins={[rehypeKatex]}
+                                                        components={{
+                                                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                                            code: ({ children }) => (
+                                                                <code className="bg-black/20 px-1 py-0.5 rounded text-purple-200">
+                                                                    {children}
+                                                                </code>
+                                                            ),
+                                                        }}
+                                                    >
+                                                        {message.text}
+                                                    </ReactMarkdown>
+                                                </div>
                                                 <span className="mt-1 block text-xs opacity-70">
                                                     {message.timestamp.toLocaleTimeString('es-ES', {
                                                         hour: '2-digit',

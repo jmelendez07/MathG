@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Galaxy;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use App\Traits\LogsUserActivity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class GalaxyController extends Controller
 {
+    use LogsUserActivity;
+
     public $folder;
 
     public function __construct()
@@ -31,6 +34,8 @@ class GalaxyController extends Controller
 
     public function store(Request $request)
     {
+        $startTime = microtime(true);
+
         $request->validate([
             'name' => 'required|string|max:255|unique:galaxies,name',
             'image' => 'required|image|max:2048',
@@ -47,6 +52,20 @@ class GalaxyController extends Controller
             'image_public_id' => $cloudinaryImage['public_id'],
         ]);
 
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Nueva galaxia ' . $galaxy->name . ' creada',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         return redirect()->route('galaxies.index')->with('success', 'Galaxia ' . $galaxy->name . ' creada exitosamente.');
     }
 
@@ -62,6 +81,7 @@ class GalaxyController extends Controller
 
     public function update(Request $request, $galaxyId)
     {
+        $startTime = microtime(true);
         $galaxy = Galaxy::findOrFail($galaxyId);
 
         $request->validate([
@@ -85,11 +105,26 @@ class GalaxyController extends Controller
         $galaxy->name = $request->name;
         $galaxy->save();
 
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Galaxia ' . $galaxy->name . ' actualizada',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         return redirect()->route('galaxies.index')->with('success', 'Galaxia ' . $galaxy->name . ' actualizada exitosamente.');
     }
 
-    public function destroy($galaxyId)
+    public function destroy(Request $request, $galaxyId)
     {
+        $startTime = microtime(true);
         $galaxy = Galaxy::findOrFail($galaxyId);
 
         if ($galaxy->image_public_id) {
@@ -102,6 +137,20 @@ class GalaxyController extends Controller
         }
 
         $galaxy->delete();
+
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Galaxia ' . $galaxy->name . ' eliminada',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         return redirect()->route('galaxies.index')->with('success', 'Galaxia ' . $galaxy->name . ' eliminada exitosamente.');
     }

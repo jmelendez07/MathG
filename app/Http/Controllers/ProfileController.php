@@ -90,7 +90,6 @@ class ProfileController extends Controller
         $profile->save();
         $profile->load('level');
 
-        // Devolver los datos actualizados sin redireccionar
         return back()->with([
             'message' => 'Experience updated successfully',
             'updatedProfile' => $profile,

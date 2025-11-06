@@ -180,8 +180,8 @@ export default function Dashboard({ users, sessions, difficulties, averageProgre
                                             Actividad diaria de sesiones
                                         </p>
                                     </div>
-                                    <Button variant="outline" size="icon" className="cursor-pointer h-8 w-8">
-                                        <Download className="h-4 w-4" onClick={() => exportAsImage('sessions-chart', 'sesiones-ultimos-30-dias')} />
+                                    <Button onClick={() => exportAsImage('sessions-chart', 'sesiones-ultimos-30-dias')} variant="outline" size="icon" className="cursor-pointer h-8 w-8">
+                                        <Download className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </CardHeader>

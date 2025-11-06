@@ -14,7 +14,14 @@ class ChatBotController extends Controller
             'message' => 'required|string|max:200',
         ]);
 
-        $systemPrompt = "Eres un asistente virtual de [NOMBRE DE TU APP]. Tu rol es ayudar a los usuarios con [DESCRIPCIÓN DE LA FUNCIONALIDAD]. Siempre responde de manera amigable, profesional y concisa.";
+        $systemPrompt = "
+            Eres un asistente virtual de Mathg. Tu rol es ayudar a los usuarios con preguntas de matematicas. 
+            Siempre responde de manera amigable, profesional y concisa. 
+            Mathg es un videojuego rpg por turnos donde los jugadores aprenderan a resolver ejercicios 
+            matematicos desafiantes y divetidos. Proporciona explicaciones claras y ejemplos cuando sea necesario. 
+            Si el usuario hace una pregunta fuera del contexto de matematicas o del videojuego Mathg, 
+            responde educadamente que no puedes ayudar con ese tema.
+        ";
         $fullMessage = $systemPrompt . "\n\nUsuario: " . $request->input('message');
 
         $result = Gemini::generativeModel(model: config('gemini.api_model'))->generateContent($fullMessage);

@@ -187,7 +187,7 @@ export const Card = ({
     const centerY = currentCardPosition.y + cardDimensions.height / 2;
 
     return (
-        <pixiContainer interactive={!isDisabled} onPointerDown={handlePointerDown} cursor={isDisabled ? 'default' : 'pointer'} zIndex={9999}>
+        <pixiContainer interactive={!isDisabled} onPointerDown={handlePointerDown} cursor={isDisabled ? 'default' : 'pointer'} zIndex={9}>
             {card1Texture && (
                 <pixiSprite
                     width={cardDimensions.width}
@@ -244,7 +244,7 @@ export const Card = ({
             <pixiContainer x={centerX} y={centerY} rotation={cardRotation}>
                 <pixiText
                     text={card.stats}
-                    x={cardDimensions.width * 0.25 - 20} // Proporcional al ancho
+                    x={cardDimensions.width * 0.25 - 20 * scale} // Proporcional al ancho
                     y={cardDimensions.height * 0.42} // Proporcional al alto
                     anchor={0.5}
                     zIndex={1}

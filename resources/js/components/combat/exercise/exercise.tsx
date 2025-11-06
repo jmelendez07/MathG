@@ -1,3 +1,4 @@
+import { useScreen } from '@/providers/screen-provider';
 import ICard from '@/types/card';
 import IEnemy from '@/types/enemy';
 import IExercise, { Option } from '@/types/exercise';
@@ -37,14 +38,16 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
     const [playerAnswers, setPlayerAnswers] = useState<{ result: string; is_correct: boolean }[]>([]);
     const [selectedWrongOption, setSelectedWrongOption] = useState<Option | null>(null);
 
-    const width = window.innerWidth * 0.5;
-    const height = window.innerHeight * 0.8;
-    const containerX = window.innerWidth / 2 - width / 2;
-    const containerY = window.innerHeight / 2 - height / 2;
-    const answersWidth = window.innerWidth * 0.45;
+    const { scale, screenSize } = useScreen();
+
+    const width = screenSize.width * 0.5;
+    const height = screenSize.height * 0.8;
+    const containerX = screenSize.width / 2 - width / 2;
+    const containerY = screenSize.height / 2 - height / 2;
+    const answersWidth = screenSize.width * 0.45;
     const centerXRelativeToContainer = (width - answersWidth) / 2;
-    const exerciseContainerX = window.innerWidth / 2 - (window.innerWidth * 0.5) / 2;
-    const exerciseContainerY = window.innerHeight / 2 - (window.innerHeight * 0.8) / 2;
+    const exerciseContainerX = screenSize.width / 2 - (screenSize.width * 0.5) / 2;
+    const exerciseContainerY = screenSize.height / 2 - (screenSize.height * 0.8) / 2;
 
     const answerTargetRef = useRef<Graphics>(null);
     const answersGraphicsRef = useRef<Graphics>(null);
@@ -154,8 +157,8 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
             setScrollOffset((prevOffset) => {
                 const newOffset = prevOffset - delta;
 
-                const topBoundary = 80;
-                const bottomBoundary = 430;
+                const topBoundary = 80 * scale;
+                const bottomBoundary = 430 * scale;
                 const visibleHeight = bottomBoundary - topBoundary;
 
                 const answerHeight = height / 10;
@@ -326,22 +329,23 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
 
             <pixiText
                 text="✕"
-                x={width - 50}
-                y={50}
+                x={width - 50 * scale}
+                y={50 * scale}
                 anchor={0.5}
                 zIndex={10}
                 interactive={true}
                 cursor="pointer"
                 onClick={onClose}
+                onTap={onClose}
                 style={{
-                    fontSize: 32,
+                    fontSize: 32 * scale,
                     fill: 0xffffff,
                     fontFamily: 'Arial',
                     fontWeight: 'bold',
                 }}
             />
 
-            <pixiContainer zIndex={10} x={(width / 5) * 4} y={35.5}>
+            <pixiContainer zIndex={10} x={(width / 5) * 4} y={35.5 * scale}>
                 <pixiText
                     text={'?'}
                     x={0}
@@ -349,34 +353,35 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                     cursor="pointer"
                     interactive={true}
                     onClick={handleTricksToggle}
+                    onTap={handleTricksToggle}
                     zIndex={10}
                     style={{
-                        fontSize: 28,
+                        fontSize: 28 * scale,
                         fill: 0xffffff,
                         fontFamily: 'Arial',
                     }}
                 />
                 <pixiText
                     text={card?.stats}
-                    x={30}
+                    x={30 * scale}
                     y={0}
                     style={{
-                        fontSize: 28,
+                        fontSize: 28 * scale,
                         fill: 0xffffff,
                         fontFamily: 'Arial',
                     }}
                 />
-                {swordTexture && <pixiSprite texture={swordTexture} x={60} y={0} width={45} height={30} />}
+                {swordTexture && <pixiSprite texture={swordTexture} x={60 * scale} y={0} width={45 * scale} height={30 * scale} />}
             </pixiContainer>
 
             <pixiText
                 text={exercise?.operation || ''}
-                x={100}
-                y={50}
+                x={100 * scale}
+                y={50 * scale}
                 anchor={0.5}
                 zIndex={1}
                 style={{
-                    fontSize: 24,
+                    fontSize: 24 * scale,
                     fill: 0xffffff,
                     fontFamily: 'Arial',
                 }}
@@ -415,8 +420,8 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                 const singleStepHeight = answerHeight + 10;
 
                 const answerY = 21 + (index + 1) * singleStepHeight + scrollOffset;
-                const topBoundary = 80;
-                const bottomBoundary = 430; // ← unificado
+                const topBoundary = 80 * scale;
+                const bottomBoundary = 430 * scale;
 
                 const isVisible = answerY >= topBoundary && answerY + answerHeight <= bottomBoundary;
 
@@ -428,32 +433,32 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                             <pixiGraphics
                                 draw={(g) => {
                                     g.clear();
-                                    g.roundRect(26, answerY, width - 55, answerHeight);
+                                    g.roundRect(26 * scale, answerY, width - 55 * scale, answerHeight, 8 * scale); // ✅ Añadido borderRadius escalado
                                     g.fill({ color: 0x000000, alpha: 0.01 });
-                                    g.stroke({ color: step.is_correct ? 0x00ff00 : 0xff0000, width: 2 });
+                                    g.stroke({ color: step.is_correct ? 0x00ff00 : 0xff0000, width: 2 * scale });
                                 }}
                             />
                             <pixiText
                                 text={step.result}
-                                x={100}
+                                x={100 * scale}
                                 y={answerY + answerHeight / 2}
                                 anchor={0.5}
                                 zIndex={1}
-                                style={{ fontSize: 24, fill: 0xffffff, fontFamily: 'Arial' }}
+                                style={{ fontSize: 24 * scale, fill: 0xffffff, fontFamily: 'Arial' }}
                             />
                         </Fragment>
                     </pixiContainer>
                 );
             })}
             {answersTexture && (
-                <pixiContainer x={centerXRelativeToContainer} y={430} width={answersWidth} height={window.innerHeight * 0.2} zIndex={1}>
-                    <pixiSprite texture={answersTexture} width={answersWidth} height={window.innerHeight * 0.2} />
+                <pixiContainer x={centerXRelativeToContainer} y={570 * scale} width={answersWidth} height={screenSize.height * 0.2} zIndex={1}>
+                    <pixiSprite texture={answersTexture} width={answersWidth} height={screenSize.height * 0.2} />
                     {exercise &&
                         exercise.steps &&
                         exercise.steps[currentStep].options.map((opt, index) => {
-                            const padding = 20; // Padding de 20 píxeles
+                            const padding = 20 * scale; // Padding de 20 píxeles
                             const availableWidth = answersWidth - padding * 2;
-                            const availableHeight = window.innerHeight * 0.2 - padding * 2;
+                            const availableHeight = screenSize.height * 0.2 - padding * 2;
                             const answerWidth = availableWidth / exercise.steps![currentStep].options.length;
                             const answerHeight = availableHeight;
                             const xPosition = padding + index * answerWidth;

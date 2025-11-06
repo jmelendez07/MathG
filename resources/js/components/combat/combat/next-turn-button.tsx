@@ -72,6 +72,7 @@ export default function NextTurnButton({ onClick }: INextTurnButtonProps) {
             eventMode="static"
             cursor="pointer"
             onClick={onClick}
+            onTap={onClick}
             onPointerOver={() => setIsHovered(true)}
             onPointerOut={() => setIsHovered(false)}
         >

@@ -1,3 +1,4 @@
+import { useScreen } from '@/providers/screen-provider';
 import { Option } from '@/types/exercise';
 import { Container, FederatedPointerEvent } from 'pixi.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -42,6 +43,7 @@ export const Answer = ({
     const dragOffset = useRef({ x: 0, y: 0 });
     const wasDragged = useRef(false); // Ref para rastrear si hubo movimiento
     const answerContainerRef = useRef<Container>(null);
+    const {scale} = useScreen();
 
     const handlePointerMove = useCallback(
         (event: PointerEvent) => {
@@ -123,7 +125,7 @@ export const Answer = ({
                 y={height / 2}
                 anchor={0.5}
                 style={{
-                    fontSize: 20,
+                    fontSize: 20 * scale,
                     fill: 0xffffff,
                     fontFamily: 'Arial',
                 }}

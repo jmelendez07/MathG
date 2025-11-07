@@ -33,6 +33,24 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build assets with Vite
+        run: npm run build
+        env:
+          VITE_APP_NAME: MathG
+          VITE_PUSHER_APP_KEY: eb676c8e7df5ce5c1b35
+          VITE_PUSHER_APP_CLUSTER: us2
+          VITE_PUSHER_SCHEME: https
+          VITE_PUSHER_HOST: ""
+          VITE_PUSHER_PORT: "443"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -67,4 +85,3 @@ jobs:
           app-name: 'math-g'
           slot-name: 'Production'
           package: .
-          

@@ -1,6 +1,7 @@
 import { Actions } from "@/enums/hero-actions";
 import { Directions } from "@/enums/hero-directions";
 import { getRow, HERO_FRAME_SIZE, HERO_MOVING_SPEED, HERO_MOVING_SPEED_RUNNING } from "@/lib/utils";
+import { useScreen } from "@/providers/screen-provider";
 import { useTeam } from "@/providers/team-provider";
 import { useTick } from "@pixi/react";
 import { Rectangle, Sprite, Texture } from "pixi.js";
@@ -32,6 +33,7 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
     const [particles, setParticles] = useState<Particle[]>([]);
     const particleIdRef = useRef(0);
     const previousHeroIdRef = useRef(currentHero.id);
+    const {scale} = useScreen();
 
     // Reset animación cuando cambia el héroe
     useEffect(() => {
@@ -54,7 +56,7 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
                 setSprite(newSprite);
             }
         }
-    }, [currentHero.id, currentHero.texture, direction]);
+    }, [currentHero.id, currentHero.texture, direction, scale]);
 
     const updateSprite = useCallback(() => {
         if (!currentHero.texture) return;
@@ -141,7 +143,7 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
             <pixiSprite 
                 ref={spriteRef}
                 anchor={0.5}
-                scale={2}
+                scale={2 * scale}
                 y={y}
                 x={x}
                 texture={sprite.texture}

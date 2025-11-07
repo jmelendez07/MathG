@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\LogsUserActivity;
 use App\Models\Enemy;
 use App\Models\Planet;
 use App\Models\EnemyType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class EnemyController extends Controller
 {
+    use LogsUserActivity;
+
     public function index()
     {
         $enemies = Enemy::with(['type', 'planet'])->orderBy('created_at', 'desc')->get();
@@ -25,6 +29,7 @@ class EnemyController extends Controller
 
     public function store(Request $request)
     {
+        $startTime = microtime(true);
         $request->validate([
             'name' => 'required|string|max:255',
             'spritesheet' => 'required|image|mimes:jpg,jpeg,png|max:2048',
@@ -45,11 +50,26 @@ class EnemyController extends Controller
             'enemy_type_id' => $request->enemy_type_id,
         ]);
 
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Nuevo enemigo ' . $enemy->name . ' creado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         return redirect()->back()->with('success', "Enemigo {$enemy->name} creado exitosamente.");
     }
 
     public function update(Request $request, $enemyId)
     {
+        $startTime = microtime(true);
         $enemy = Enemy::findOrFail($enemyId);
 
         $request->validate([
@@ -72,13 +92,45 @@ class EnemyController extends Controller
             'enemy_type_id' => $request->enemy_type_id,
         ]);
 
+        $user = Auth::user();
+
+        $this->logActivity(
+            $request,
+            'Enemigo ' . $enemy->name . ' actualizado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         return redirect()->back()->with('success', "Enemigo {$enemy->name} actualizado exitosamente.");
     }
 
-    public function destroy($enemyId)
+    public function destroy(Request $request, $enemyId)
     {
+        $startTime = microtime(true);
+
         $enemy = Enemy::findOrFail($enemyId);
         $enemy->delete();
+
+        $user = Auth::user();
+
+        $this->logActivity(
+            $request,
+            'Enemigo ' . $enemy->name . ' eliminado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         return redirect()->back()->with('success', "Enemigo eliminado exitosamente.");
     }

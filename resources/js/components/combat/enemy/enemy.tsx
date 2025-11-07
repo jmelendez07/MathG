@@ -1,5 +1,6 @@
 import { ANIMATION_SPEED } from '@/components/constants/game-world';
 import useEnemyAnimation from '@/components/enemy/useEnemyAnimation';
+import { useScreen } from '@/providers/screen-provider';
 import IEnemy from '@/types/enemy';
 import { extend, useTick } from '@pixi/react';
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
@@ -18,6 +19,7 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
     const [isHovered, setIsHovered] = useState(false);
     const [swordTexture, setSwordTexture] = useState<Texture | null>(null);
     const [floatAnimation, setFloatAnimation] = useState(0);
+    const { scale } = useScreen();
 
     const placeholderTexture = Texture.WHITE;
     const textureToUse = enemyTexture || placeholderTexture;
@@ -39,7 +41,7 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
         });
     }, [enemy.spritesheet]);
 
-    useTick((delta) => {
+    useTick(() => {
         updateEnemySprite('combatIdle', 'left');
         setFloatAnimation((prev) => prev + 0.02);
     });
@@ -63,8 +65,8 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                         texture={enemySprite.texture}
                         x={enemy.combat_position?.x || 0}
                         y={enemy.combat_position?.y || 0}
-                        width={128}
-                        height={128}
+                        width={128 * scale}
+                        height={128 * scale}
                         onPointerOver={handlePointerOver}
                         onPointerOut={handlePointerOut}
                     />
@@ -72,10 +74,10 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                     {swordTexture && (
                         <pixiSprite
                             texture={swordTexture}
-                            x={(enemy.combat_position?.x || 0) + 80}
-                            y={(enemy.combat_position?.y || 0) - 50 + floatOffset}
-                            width={40}
-                            height={40}
+                            x={(enemy.combat_position?.x || 0) + 80 * scale}
+                            y={(enemy.combat_position?.y || 0) - 50 * scale + floatOffset}
+                            width={40 * scale}
+                            height={40 * scale}
                             zIndex={10}
                         />
                     )}
@@ -83,15 +85,15 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                     <pixiText
                         text={enemy.basic_attack}
                         anchor={0.5}
-                        x={(enemy.combat_position?.x || 0) + 70}
-                        y={(enemy.combat_position?.y || 0) - 25 + floatOffset}
+                        x={(enemy.combat_position?.x || 0) + 70 * scale}
+                        y={(enemy.combat_position?.y || 0) - 25 * scale + floatOffset}
                         zIndex={10}
                         style={{
-                            fontFamily: 'Arial',
-                            fontSize: 20,
+                            fontFamily: 'Jersey 10',
+                            fontSize: 20 * scale,
                             fill: 0xffffff,
                             fontWeight: 'bold',
-                            stroke: { color: 0x000000, width: 2 },
+                            stroke: { color: 0x000000, width: 2 * scale },
                         }}
                     />
 
@@ -99,19 +101,24 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                         <pixiText
                             text={enemy.name}
                             anchor={0.5}
-                            x={(enemy.combat_position?.x || 0) + 64}
+                            x={(enemy.combat_position?.x || 0) + 64 * scale}
                             y={enemy.combat_position?.y || 0}
                             style={{
                                 fontFamily: 'Arial',
-                                fontSize: 20,
+                                fontSize: 20 * scale,
                                 fill: 0xffffff,
                                 fontWeight: 'bold',
-                                stroke: { color: 0x000000, width: 2 },
+                                stroke: { color: 0x000000, width: 2 * scale },
                             }}
                         />
                     )}
 
-                    <pixiContainer x={(enemy.combat_position?.x || 0) - 11} y={(enemy.combat_position?.y || 0) + 140}>
+                    <pixiContainer
+                        x={(enemy.combat_position?.x || 0) - 11 * scale}
+                        y={(enemy.combat_position?.y || 0) + 140 * scale}
+                        zIndex={5}
+                        scale={scale}
+                    >
                         <pixiGraphics
                             draw={(g) => {
                                 g.clear();

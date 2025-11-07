@@ -34,6 +34,7 @@ import PublicLayout from '@/layouts/public-layout';
 import Typewriter from '@/components/typewriter';
 import { useDraggable } from '@/hooks/use-draggable';
 import { Roles } from '@/enums/roles';
+import Chatbot from '@/components/chat-bot';
 
 export default function Welcome() {
     const { auth, name } = usePage<SharedData>().props;
@@ -254,8 +255,11 @@ export default function Welcome() {
                         <div
                             className={`flex items-center space-x-3 transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}
                         >
-                            <Crown className="size-6 md:h-10 md:w-10 animate-pulse text-purple-300" />
-                            <h1 className="font-jersey text-3xl leading-6 lg:text-4xl text-white">{name}</h1>
+                            <img 
+                                src="https://res.cloudinary.com/dvibz13t8/image/upload/v1762189987/logo_MathG_x5vo20.png" 
+                                alt="MathG App" 
+                                className='w-auto h-6 md:h-20'
+                            />
                         </div>
 
                         <div
@@ -549,7 +553,7 @@ export default function Welcome() {
                     </div>
                 </footer>
 
-                <div className="fixed right-6 bottom-6 z-50">
+                <div className="fixed right-6 bottom-23 z-50">
                     <button
                         onClick={scrollToTop}
                         className={`relative transform cursor-pointer overflow-hidden rounded-full border-2 border-purple-400 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:from-purple-700 hover:to-indigo-700 hover:shadow-xl ${showScrollToTop ? 'size-14' : 'size-0 !border-0 !p-0'} `}
@@ -558,6 +562,8 @@ export default function Welcome() {
                         <ChevronUp className="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 transition-all duration-300" />
                     </button>
                 </div>
+
+                <Chatbot />
             </div>
         </PublicLayout>
     );

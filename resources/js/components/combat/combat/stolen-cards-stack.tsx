@@ -1,3 +1,4 @@
+import { useScreen } from '@/providers/screen-provider';
 import Card from '@/types/card';
 import { useTick } from '@pixi/react';
 import { useCallback, useState } from 'react';
@@ -8,13 +9,10 @@ interface IStolenCardsStackProps {
 }
 
 export default function StolenCardsStack({ cards, onClick }: IStolenCardsStackProps) {
+    const { scale, screenSize } = useScreen();
+
     // Calcular dimensiones responsivas
     const getResponsiveDimensions = () => {
-        const screenScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-        const minScale = 0.6;
-        const maxScale = 1.0;
-        const scale = Math.max(minScale, Math.min(maxScale, screenScale));
-
         return {
             scale,
             stackSize: 50 * scale,
@@ -30,8 +28,8 @@ export default function StolenCardsStack({ cards, onClick }: IStolenCardsStackPr
             lineStartX: 10 * scale,
             lineEndX: 42 * scale,
             lineStartY: 18 * scale,
-            containerX: 155 * scale,
-            containerY: window.innerHeight - 210 * scale,
+            containerX: screenSize.width * 0.12, // 12% del ancho
+            containerY: screenSize.height * 0.82, // 85% del alto
             tooltipX: 160 * scale,
             tooltipY: 20 * scale,
             tooltipFontSize: 14 * scale,
@@ -54,7 +52,6 @@ export default function StolenCardsStack({ cards, onClick }: IStolenCardsStackPr
                 const offsetX = i * dimensions.layerOffsetX;
                 const offsetY = i * dimensions.layerOffsetY;
 
-                // Cambiar de beginFill/endFill a fill()
                 g.roundRect(
                     dimensions.shadowOffset + offsetX,
                     dimensions.shadowOffset + offsetY,
@@ -64,12 +61,10 @@ export default function StolenCardsStack({ cards, onClick }: IStolenCardsStackPr
                 );
                 g.fill({ color: 0x000000, alpha: 0.3 });
 
-                // Cambiar de beginFill/lineStyle/endFill a fill() y stroke()
                 g.roundRect(offsetX, offsetY, dimensions.stackSize, dimensions.stackSize, dimensions.borderRadius);
                 g.fill({ color: 0x2a2a2a });
                 g.stroke({ color: 0x1a1a1a, width: dimensions.borderWidth });
 
-                // Para las líneas, usar moveTo/lineTo y luego stroke()
                 g.moveTo(dimensions.lineStartX + offsetX, dimensions.lineStartY + offsetY);
                 g.lineTo(dimensions.lineEndX + offsetX, dimensions.lineStartY + offsetY);
                 g.stroke({ color: 0x555555, width: dimensions.innerBorderWidth, alpha: 0.8 });
@@ -78,7 +73,7 @@ export default function StolenCardsStack({ cards, onClick }: IStolenCardsStackPr
         [cards.length, dimensions],
     );
 
-    useTick((ticker) => {
+    useTick(() => {
         setFloatAnimation((prev) => prev + 0.02);
     });
 
@@ -88,15 +83,14 @@ export default function StolenCardsStack({ cards, onClick }: IStolenCardsStackPr
         <pixiContainer
             cursor="pointer"
             interactive={true}
-            x={dimensions.containerX + 45}
-            y={dimensions.containerY + floatOffset + 35}
+            x={dimensions.containerX}
+            y={dimensions.containerY + floatOffset}
             onPointerOver={() => setIsHovered(true)}
             onPointerOut={() => setIsHovered(false)}
             onClick={() => onClick(true)}
         >
             <pixiGraphics draw={drawCardStack} />
 
-            {/* Tooltip al hacer hover */}
             {isHovered && (
                 <pixiText
                     text="Mostrar cartas robadas"
@@ -113,11 +107,10 @@ export default function StolenCardsStack({ cards, onClick }: IStolenCardsStackPr
                 />
             )}
 
-            {/* Contador de cartas */}
             <pixiText
                 text={`${cards.length}`}
-                x={dimensions.countX + 10}
-                y={dimensions.countY + 10}
+                x={dimensions.countX + 11 * scale}
+                y={dimensions.countY + 12 * scale}
                 anchor={0.5}
                 style={{
                     fontFamily: 'Arial, sans-serif',

@@ -1,9 +1,8 @@
+import { useScreen } from '@/providers/screen-provider';
+import Hero from '@/types/hero';
 import { extend, useTick } from '@pixi/react';
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import { useEffect, useState } from 'react';
-import { useHeroAnimation } from '../../hooks/use-hero-animation';
-import { ANIMATION_SPEED } from '../constants/game-world';
-import Hero from '@/types/hero';
 
 extend({ Container, Sprite, Graphics, Text });
 
@@ -17,13 +16,10 @@ interface HeroStatsProps {
 }
 
 const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, currentEnergy }: HeroStatsProps) => {
+    const { scale, screenSize } = useScreen();
+
     // Calcular dimensiones responsivas
     const getResponsiveDimensions = () => {
-        const screenScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-        const minScale = 0.6;
-        const maxScale = 1.0;
-        const scale = Math.max(minScale, Math.min(maxScale, screenScale));
-
         return {
             scale,
             heroSize: 128 * scale,
@@ -46,11 +42,11 @@ const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, cu
     };
 
     const dimensions = getResponsiveDimensions();
-    
+
     // ✅ Posición por defecto en la esquina inferior izquierda
     const defaultPosition = {
         x: 20 * dimensions.scale,
-        y: window.innerHeight - dimensions.yOffset,
+        y: screenSize.height - dimensions.yOffset,
     };
 
     const [animatedHp, setAnimatedHp] = useState(currentHp);
@@ -59,7 +55,6 @@ const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, cu
     const [isHeroHovered, setIsHeroHovered] = useState(false);
     const [currentHeroAvatar, setCurrentHeroAvatar] = useState<Texture>(Texture.EMPTY);
     const healthPercentage = animatedHp / maxHp;
-
 
     useEffect(() => {
         const loadCurrentHeroAvatar = async () => {
@@ -70,7 +65,7 @@ const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, cu
         loadCurrentHeroAvatar();
     }, []);
 
-    useTick((ticker) => {
+    useTick(() => {
         setFloatAnimation((prev) => prev + 0.02);
 
         const lerpSpeed = 0.05;
@@ -99,8 +94,8 @@ const HeroStats = ({ currentHp, maxHp, currentHero, energyTexture, maxEnergy, cu
 
     const floatOffset = Math.sin(floatAnimation) * 3 * dimensions.scale;
 
-    const xPos =  defaultPosition.x;
-    const yPos =  defaultPosition.y;
+    const xPos = defaultPosition.x;
+    const yPos = defaultPosition.y;
 
     return (
         <pixiContainer x={xPos} y={yPos + floatOffset}>

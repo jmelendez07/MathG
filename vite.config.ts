@@ -17,6 +17,15 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+    build: {
+        rollupOptions: {
+            output: {
+                globals: {
+                    'import.meta.env.VITE_APP_NAME': 'MathG',
+                }
+            }
+        }
+    },
     resolve: {
         alias: {
             '@': resolve(__dirname, 'resources/js'),

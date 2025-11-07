@@ -1,8 +1,8 @@
-import { Stage as IStage } from "@/types/planet";
-import { router } from "@inertiajs/react";
-import { Graphics, Texture } from "pixi.js";
-import { useCallback, useEffect, useRef } from "react";
-import { ColorMatrixFilter } from "pixi.js";
+import { useScreen } from '@/providers/screen-provider';
+import { Stage as IStage } from '@/types/planet';
+import { router } from '@inertiajs/react';
+import { ColorMatrixFilter, Graphics, Texture } from 'pixi.js';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface IStageProps {
     stage: IStage;
@@ -15,6 +15,7 @@ interface IStageProps {
 export default function Stage({ stage, x, y, stageTextures, locked = false }: IStageProps) {
     const maskRef = useRef<Graphics>(null);
     const spriteRef = useRef<any>(null);
+    const { scale } = useScreen();
 
     useEffect(() => {
         if (spriteRef.current && maskRef.current) {
@@ -27,37 +28,40 @@ export default function Stage({ stage, x, y, stageTextures, locked = false }: IS
     }, [stage.id]);
 
     const filters = locked
-        ? [(() => { 
-            const f = new ColorMatrixFilter(); 
-            f.greyscale(0.3, false); 
-            return f; 
-        })()]
+        ? [
+              (() => {
+                  const f = new ColorMatrixFilter();
+                  f.greyscale(0.3, false);
+                  return f;
+              })(),
+          ]
         : undefined;
 
     return (
-        <pixiContainer 
-            x={x} 
+        <pixiContainer
+            x={x}
             y={y}
-            interactive={!locked} 
-            onClick={() => !locked && handleClick()} 
+            interactive={!locked}
+            onClick={() => !locked && handleClick()}
+            onTap={() => !locked && handleClick()}
             cursor={!locked ? 'pointer' : undefined}
         >
             {!locked && (
                 <pixiGraphics
-                    draw={g => {
+                    draw={(g) => {
                         g.clear();
                         g.beginFill(0x8b5cf6);
-                        g.drawCircle(0, 0, 55);
+                        g.drawCircle(0, 0, 55 * scale);
                         g.endFill();
                     }}
                 />
             )}
             <pixiGraphics
                 ref={maskRef}
-                draw={g => {
+                draw={(g) => {
                     g.clear();
                     g.beginFill(0x8b5cf6);
-                    g.drawCircle(0, 0, 50);
+                    g.drawCircle(0, 0, 50 * scale);
                     g.endFill();
                 }}
             />
@@ -66,8 +70,8 @@ export default function Stage({ stage, x, y, stageTextures, locked = false }: IS
                     ref={spriteRef}
                     texture={stageTextures[stage.id]}
                     anchor={0.5}
-                    width={100}
-                    height={100}
+                    width={100 * scale}
+                    height={100 * scale}
                     x={0}
                     y={0}
                     filters={filters}

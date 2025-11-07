@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { extend, useTick } from '@pixi/react';
 import { Container, Sprite, Graphics, Text, TextStyle, Assets, Texture } from 'pixi.js';
 import { router } from '@inertiajs/react';
@@ -24,7 +24,7 @@ export default function ConfigUI() {
     const modalRef = useRef<any>(null);
     const backgroundRef = useRef<any>(null);
 
-    const { screenSize, toggleFullscreen, isFullscreen } = useScreen();
+    const { screenSize, toggleFullscreen, isFullscreen, scale } = useScreen();
 
     useState(() => {
         Assets.load(configImage).then(setConfigTexture);
@@ -39,7 +39,7 @@ export default function ConfigUI() {
 
         if (modalRef.current) {
             const easeProgress = 1 - Math.pow(1 - animationProgress, 3);
-            const startY = -200;
+            const startY = -200 * scale;
             const endY = screenSize.height / 2;
             modalRef.current.y = startY + (endY - startY) * easeProgress;
             modalRef.current.alpha = animationProgress;
@@ -120,54 +120,55 @@ export default function ConfigUI() {
         router.visit(route('logout'), { method: 'post' });
     }, []);
 
-    const titleStyle = new TextStyle({
+    const titleStyle = useMemo(() => new TextStyle({
         fontFamily: 'Jersey 10, Arial, sans-serif',
-        fontSize: 80,
+        fontSize: 80 * scale,
         fontWeight: '500',
         fill: '#ffffff',
         align: 'center'
-    });
+    }), [scale]);
 
-    const menuItemStyle = new TextStyle({
+    const menuItemStyle = useMemo(() => new TextStyle({
         fontFamily: 'Jersey 10, Arial, sans-serif',
-        fontSize: 70,
+        fontSize: 70 * scale,
         fill: '#ffffff',
         align: 'center'
-    });
+    }), [scale]);
 
-    const closeButtonStyle = new TextStyle({
+    const closeButtonStyle = useMemo(() => new TextStyle({
         fontFamily: 'Jersey 10, Arial, sans-serif',
-        fontSize: 100,
+        fontSize: 100 * scale,
         fontWeight: '100',
         fill: '#ffffff',
         align: 'center'
-    });
+    }), [scale]);
 
-    const arrowStyle = new TextStyle({
+    const arrowStyle = useMemo(() => new TextStyle({
         fontFamily: 'Jersey 10, Arial, sans-serif',
-        fontSize: 60,
+        fontSize: 60 * scale,
         fill: '#8b5cf6',
         align: 'center'
-    });
+    }), [scale]);
 
     return (
         <pixiContainer zIndex={1000}>
             {configTexture && (
                 <pixiContainer
-                    x={screenSize.width - 80}
-                    y={20}
+                    x={screenSize.width - 80 * scale}
+                    y={20 * scale}
                     interactive
                     cursor="pointer"
                     onClick={handleConfigClick}
+                    onTap={handleConfigClick}
                     zIndex={1000}
                 >   
                     <pixiSprite
                         texture={configTexture}
                         anchor={0.5}
-                        x={30}
-                        y={30}
-                        width={49.6}
-                        height={54.4}
+                        x={30 * scale}
+                        y={30 * scale}
+                        width={49.6 * scale}
+                        height={54.4 * scale}
                         tint={0xffffff}
                     />
                 </pixiContainer>
@@ -197,8 +198,8 @@ export default function ConfigUI() {
                             draw={(g) => {
                                 g.clear();
                                 g.beginFill(0x2d1b69, 1);
-                                g.lineStyle(3, 0x8b5cf6, 1);
-                                g.drawRoundedRect(-350, -250, 700, 500, 10);
+                                g.lineStyle(3 * scale, 0x8b5cf6, 1);
+                                g.drawRoundedRect(-350 * scale, -250 * scale, 700 * scale, 500 * scale, 10 * scale);
                                 g.endFill();
                             }}
                         />
@@ -207,15 +208,15 @@ export default function ConfigUI() {
                             text="Configuración"
                             style={titleStyle}
                             anchor={0.5}
-                            x={-135}
-                            y={-200}
+                            x={-135 * scale}
+                            y={-200 * scale}
                             resolution={3}
                         />
 
-                        <pixiContainer y={-140}>
+                        <pixiContainer y={-140 * scale}>
                             {/* Volver al menu */}
                             <pixiContainer
-                                y={50}
+                                y={50 * scale}
                                 interactive
                                 cursor="pointer"
                                 onPointerDown={handleReturnToMenu}
@@ -227,7 +228,7 @@ export default function ConfigUI() {
                                         g.clear();
                                         const alpha = 0.3 + (bgProgressMenu * 0.3);
                                         g.beginFill(0x8b5cf6, alpha);
-                                        g.drawRoundedRect(-330, -25, 660, 70, 5);
+                                        g.drawRoundedRect(-330 * scale, -25 * scale, 660 * scale, 70 * scale, 5 * scale);
                                         g.endFill();
                                     }}
                                 />
@@ -236,15 +237,15 @@ export default function ConfigUI() {
                                     style={menuItemStyle}
                                     anchor={0.5}
                                     x={0}
-                                    y={5}
+                                    y={5 * scale}
                                     resolution={2}
                                 />
                                 <pixiText
                                     text="→"
                                     style={arrowStyle}
                                     anchor={0.5}
-                                    x={-280 + (arrowProgressMenu * 20)}
-                                    y={5}
+                                    x={(-280 + (arrowProgressMenu * 20)) * scale}
+                                    y={5 * scale}
                                     alpha={arrowProgressMenu}
                                     resolution={2}
                                 />
@@ -252,7 +253,7 @@ export default function ConfigUI() {
 
                             {/* Pantalla completa */}
                             <pixiContainer
-                                y={140}
+                                y={140 * scale}
                                 interactive
                                 cursor="pointer"
                                 onPointerDown={handleToggleFullscreen}
@@ -264,7 +265,7 @@ export default function ConfigUI() {
                                         g.clear();
                                         const alpha = 0.3 + (bgProgressFullscreen * 0.3);
                                         g.beginFill(0x8b5cf6, alpha);
-                                        g.drawRoundedRect(-330, -25, 660, 70, 5);
+                                        g.drawRoundedRect(-330 * scale, -25 * scale, 660 * scale, 70 * scale, 5 * scale);
                                         g.endFill();
                                     }}
                                 />
@@ -273,15 +274,15 @@ export default function ConfigUI() {
                                     style={menuItemStyle}
                                     anchor={0.5}
                                     x={0}
-                                    y={5}
+                                    y={5 * scale}
                                     resolution={2}
                                 />
                                 <pixiText
                                     text="→"
                                     style={arrowStyle}
                                     anchor={0.5}
-                                    x={-280 + (arrowProgressFullscreen * 20)}
-                                    y={5}
+                                    x={(-280 + (arrowProgressFullscreen * 20)) * scale}
+                                    y={5 * scale}
                                     alpha={arrowProgressFullscreen}
                                     resolution={2}
                                 />
@@ -289,7 +290,7 @@ export default function ConfigUI() {
 
                             {/* Cerrar sesión */}
                             <pixiContainer
-                                y={230}
+                                y={230 * scale}
                                 interactive
                                 cursor="pointer"
                                 onPointerDown={handleLogout}
@@ -301,7 +302,7 @@ export default function ConfigUI() {
                                         g.clear();
                                         const alpha = 0.3 + (bgProgressLogout * 0.3);
                                         g.beginFill(0x8b5cf6, alpha);
-                                        g.drawRoundedRect(-330, -25, 660, 70, 5);
+                                        g.drawRoundedRect(-330 * scale, -25 * scale, 660 * scale, 70 * scale, 5 * scale);
                                         g.endFill();
                                     }}
                                 />
@@ -310,15 +311,15 @@ export default function ConfigUI() {
                                     style={menuItemStyle}
                                     anchor={0.5}
                                     x={0}
-                                    y={5}
+                                    y={5 * scale}
                                     resolution={2}
                                 />
                                 <pixiText
                                     text="→"
                                     style={arrowStyle}
                                     anchor={0.5}
-                                    x={-280 + (arrowProgressLogout * 20)}
-                                    y={5}
+                                    x={(-280 + (arrowProgressLogout * 20)) * scale}
+                                    y={5 * scale}
                                     alpha={arrowProgressLogout}
                                     resolution={2}
                                 />
@@ -326,8 +327,8 @@ export default function ConfigUI() {
                         </pixiContainer>
 
                         <pixiContainer
-                            x={315}
-                            y={-210}
+                            x={315 * scale}
+                            y={-210 * scale}
                             interactive={true}
                             cursor="pointer"
                             onPointerDown={handleCloseModal}

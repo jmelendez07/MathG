@@ -18,6 +18,8 @@ import HeroStats from './hero-stats';
 import { CombatUI } from './combat-ui/combat-ui';
 import { Stage } from '@/types/planet';
 import { useTeam } from '@/providers/team-provider';
+import { useScreen } from '@/providers/screen-provider';
+
 
 extend({ Sprite, Container, Graphics });
 
@@ -45,7 +47,6 @@ const spriteBgCombat = '/assets/bg-battle.jpg';
 export const Combat = ({ team, teamTextures, enemies, cards, currentHero, currentStage, onSetSelectedEnemies, finish, lose }: ICombatProps) => {
     const [teamEnergy, setTeamEnergy] = useState(4);
     const [turn, setTurn] = useState(0);
-    const [maxHeroHealth] = useState(team[0]?.health || 100);
     const [maxHeroEnergy] = useState(4);
     const [combatTexture, setCombatTexture] = useState<Texture | null>(null);
     const [isCardHeldDown, setIsCardHeldDown] = useState(false);
@@ -64,6 +65,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
     const [xpGained, setXpGained] = useState(0);
     const [attackingHeroIndex, setAttackingHeroIndex] = useState<number | null>(null);
     const { teamHeroes, updateHeroHealth } = useTeam();
+    const { scale, screenSize } = useScreen();
 
     // Usar teamHeroes del context en lugar de team prop
     const activeTeam = teamHeroes.length > 0 ? teamHeroes : team;
@@ -283,13 +285,13 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
 
                 const heroSprite = isAttackingAnimation && attackingHeroIndex === index ? attackAnimation.sprite : heroAnimations[index]?.sprite;
 
-                const baseX = window.innerWidth * 0.15;
-                const baseY = window.innerHeight * 0.4;
-                const spacing = 120;
+                const baseX = screenSize.width * 0.2;
+                const baseY = screenSize.height * 0.4;
+                const spacing = 120 * scale;
 
                 const isAttackSprite = isAttackingAnimation && attackingHeroIndex === index;
-                const spriteWidth = isAttackSprite ? 384 : 128;
-                const normalWidth = 128;
+                const spriteWidth = isAttackSprite ? 384 * scale : 128 * scale;
+                const normalWidth = 128 * scale;
 
                 const adjustedX = isAttackSprite ? baseX - (spriteWidth - normalWidth) / 2 : baseX;
 
@@ -301,7 +303,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                             x={adjustedX}
                             y={baseY + index * spacing}
                             width={spriteWidth}
-                            height={128}
+                            height={128 * scale}
                         />
                     )
                 );
@@ -315,8 +317,8 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                         key={`enemy-target-${enemy.id}-${index}`}
                         draw={(g) => {
                             g.clear();
-                            g.rect(enemy.combat_position?.x || 0, enemy.combat_position?.y || 0, 128, 128);
-                            g.stroke({ color: isTargetAssigned && selectedEnemy?.id === enemy.id ? 0x00ff00 : 0xff0000, width: 5 });
+                            g.rect(enemy.combat_position?.x || 0, enemy.combat_position?.y || 0, 128 * scale, 128 * scale);
+                            g.stroke({ color: isTargetAssigned && selectedEnemy?.id === enemy.id ? 0x00ff00 : 0xff0000, width: 5 * scale });
                         }}
                     />
                 ))}

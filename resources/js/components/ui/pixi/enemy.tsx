@@ -1,4 +1,5 @@
 import useEnemyAnimation from "@/components/enemy/useEnemyAnimation";
+import { useScreen } from "@/providers/screen-provider";
 import Enemy from "@/types/enemy";
 import { useTick } from "@pixi/react";
 import { Assets, Texture } from "pixi.js";
@@ -13,6 +14,7 @@ export const EnemyUI = ({ enemy, showInteraction }: EnemyUIProps) => {
     const [texture, setTexture] = useState<Texture>(Texture.WHITE);
     const pulseRef = useRef(0);
     const [pulseScale, setPulseScale] = useState(1);
+    const { scale } = useScreen();
 
     const { sprite, updateSprite } = useEnemyAnimation({
         texture,
@@ -43,7 +45,7 @@ export const EnemyUI = ({ enemy, showInteraction }: EnemyUIProps) => {
             <pixiSprite 
                 texture={sprite.texture}
                 anchor={0.5}
-                scale={2}
+                scale={2 * scale}
                 y={enemy.map_position?.y || 0}
                 x={enemy.map_position?.x || 0}
                 zIndex={enemy.map_position?.y}
@@ -52,8 +54,8 @@ export const EnemyUI = ({ enemy, showInteraction }: EnemyUIProps) => {
                 <>
                     <pixiGraphics
                         x={(enemy.map_position?.x || 0)}
-                        y={(enemy.map_position?.y || 0) - 100}
-                        scale={pulseScale}
+                        y={(enemy.map_position?.y || 0) - 100 * scale }
+                        scale={pulseScale * scale}
                         zIndex={9999}
                         draw={g => {
                             g.clear();
@@ -67,12 +69,12 @@ export const EnemyUI = ({ enemy, showInteraction }: EnemyUIProps) => {
                         text="F"
                         anchor={0.5}
                         x={(enemy.map_position?.x || 0)}
-                        y={(enemy.map_position?.y || 0) - 100}
-                        scale={pulseScale}
+                        y={(enemy.map_position?.y || 0) - 100 * scale}
+                        scale={pulseScale * scale}
                         zIndex={10000}
                         style={{
                             fontFamily: 'Arial',
-                            fontSize: 32,
+                            fontSize: 32 * scale,
                             fontWeight: 'bold',
                             fill: 0xFFFFFF,
                             align: 'center'

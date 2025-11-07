@@ -1,6 +1,7 @@
+import { useScreen } from "@/providers/screen-provider";
 import { Stage } from "@/types/planet";
-import { Assets, Texture } from "pixi.js";
-import { useEffect, useState } from "react";
+import { Assets, Texture, TextStyle } from "pixi.js";
+import { useEffect, useState, useMemo } from "react";
 
 interface StageUIProps {
     stage: Stage;
@@ -10,6 +11,13 @@ const stageAsset = 'https://res.cloudinary.com/dvibz13t8/image/upload/v175932723
 
 export const StageUI = ({ stage }: StageUIProps) => {
     const [texture, setTexture] = useState<Texture | null>(null);
+    const { screenSize, scale } = useScreen();
+
+    const textStyle = useMemo(() => new TextStyle({
+        fill: 0xffffff,
+        fontSize: 40 * scale,
+        fontFamily: 'Jersey 10'
+    }), [scale]);
 
     useEffect(() => {
         Assets.load<Texture>(stageAsset).then((tex) => {
@@ -21,20 +29,20 @@ export const StageUI = ({ stage }: StageUIProps) => {
         <>
             <pixiText
                 text={`Etapa ${stage.number}: ${stage.name}`}
-                x={window.innerWidth - 370}
-                y={26}
+                x={screenSize.width - 370 * scale}
+                y={26 * scale}
                 zIndex={1}
-                style={{ fill: 0xffffff, fontSize: 40, fontFamily: 'Jersey 10' }}
+                style={textStyle}
                 resolution={3}
             />
             { texture && (
                 <pixiSprite 
                     texture={texture} 
-                    x={window.innerWidth - 160} 
-                    y={15}
+                    x={screenSize.width - 160 * scale} 
+                    y={15 * scale}
                     zIndex={1}
-                    width={64} 
-                    height={64} 
+                    width={64 * scale} 
+                    height={64 * scale} 
                 />
             ) }
         </>

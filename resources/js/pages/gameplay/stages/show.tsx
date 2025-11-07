@@ -1,4 +1,5 @@
 import { Experience } from '@/components/gameplay/experience';
+import Loading from '@/components/gameplay/loading';
 import { useScreen } from '@/providers/screen-provider';
 import { TeamProvider } from '@/providers/team-provider';
 import Card from '@/types/card';
@@ -21,6 +22,8 @@ interface TestStageProps {
 export default function TestStage({ stage, heroes, enemies, cards }: TestStageProps) {
     const [isClient, setIsClient] = useState<boolean>(false);
     const { screenSize } = useScreen();
+    const [texturesLoaded, setTexturesLoaded] = useState<boolean>(false);
+    const [isStarted, setIsStarted] = useState<boolean>(false);
 
     useEffect(() => {
         setIsClient(true);
@@ -28,9 +31,10 @@ export default function TestStage({ stage, heroes, enemies, cards }: TestStagePr
 
     return (
         isClient && (
-            <Application width={screenSize.width} height={screenSize.height} background={0x1099bb} resizeTo={window}>
+            <Application antialias={true} autoDensity={true} width={screenSize.width} background={0x000000} height={screenSize.height} resizeTo={window}>
                 <TeamProvider initialHeroes={heroes}>
-                    <Experience stage={stage} initEnemies={enemies} cards={cards} />
+                    <Loading handleStarted={(value: boolean) => setIsStarted(value)} isLoaded={texturesLoaded} visible={!isStarted} />
+                    <Experience stage={stage} initEnemies={enemies} cards={cards} handleTexturesLoaded={(value: boolean) => setTexturesLoaded(value)} visible={isStarted} />
                 </TeamProvider>
             </Application>
         )

@@ -5,10 +5,21 @@ import { useEffect, useRef, useState } from "react";
 
 extend({ Sprite, Graphics, Text, Container });
 
-interface TestLoadingProps {
-    galaxyImage: string;
-    rocketImage: string;
-    planetImage: string;
+const textStyle = new TextStyle({
+    fontFamily: 'Jersey 10, Arial, sans-serif',
+    fontSize: 80,
+    fontWeight: '100',
+    fill: '#efefef',
+    align: 'center'
+});
+
+interface LoadingProps {
+    galaxyImage?: string;
+    rocketImage?: string;
+    planetImage?: string;
+    handleStarted: (value: boolean) => void;
+    isLoaded: boolean;
+    visible: boolean;
 }
 
 interface Particle {
@@ -19,6 +30,12 @@ interface Particle {
     life: number;
     maxLife: number;
     size: number;
+}
+
+interface LoadingTextProps {
+    canvasWidth: number;
+    canvasHeight: number;
+    isLoaded: boolean;
 }
 
 function RocketSprite({ texture, canvasWidth, canvasHeight, isStarted }: { texture: Texture; canvasWidth: number; canvasHeight: number; isStarted: boolean }) {
@@ -157,12 +174,6 @@ function RocketSprite({ texture, canvasWidth, canvasHeight, isStarted }: { textu
     );
 }
 
-interface LoadingTextProps {
-    canvasWidth: number;
-    canvasHeight: number;
-    isLoaded: boolean;
-}
-
 function LoadingText({ canvasWidth, isLoaded }: LoadingTextProps) {
     const textRef = useRef<any>(null);
     const time = useRef(0);
@@ -194,14 +205,6 @@ function LoadingText({ canvasWidth, isLoaded }: LoadingTextProps) {
         />
     );
 }
-
-const textStyle = new TextStyle({
-    fontFamily: 'Jersey 10, Arial, sans-serif',
-    fontSize: 80,
-    fontWeight: '100',
-    fill: '#efefef',
-    align: 'center'
-});
 
 function PlanetSprite({ texture, canvasWidth, canvasHeight, isStarted }: { texture: Texture; canvasWidth: number; canvasHeight: number; isStarted: boolean }) {
     const spriteRef = useRef<Sprite>(null);
@@ -281,10 +284,11 @@ function PlanetSprite({ texture, canvasWidth, canvasHeight, isStarted }: { textu
     );
 }
 
-function WhiteOverlay({ canvasWidth, canvasHeight, isStarted }: { canvasWidth: number; canvasHeight: number; isStarted: boolean }) {
+function WhiteOverlay({ canvasWidth, canvasHeight, isStarted, onAnimationComplete }: { canvasWidth: number; canvasHeight: number; isStarted: boolean; onAnimationComplete: () => void }) {
     const overlayRef = useRef<Graphics>(null);
     const fadeProgress = useRef(0);
     const [isFading, setIsFading] = useState(false);
+    const hasCompleted = useRef(false);
 
     useEffect(() => {
         if (isStarted) {
@@ -299,6 +303,12 @@ function WhiteOverlay({ canvasWidth, canvasHeight, isStarted }: { canvasWidth: n
             
             if (fadeProgress.current >= 1) {
                 fadeProgress.current = 1;
+                
+                // Llamar a handleStarted cuando la animación termina
+                if (!hasCompleted.current) {
+                    hasCompleted.current = true;
+                    onAnimationComplete();
+                }
             }
 
             const alpha = fadeProgress.current;
@@ -313,86 +323,109 @@ function WhiteOverlay({ canvasWidth, canvasHeight, isStarted }: { canvasWidth: n
     return <pixiGraphics ref={overlayRef} draw={() => {}} />;
 }
 
-export default function TestLoading({ 
+export default function Loading({ 
     galaxyImage = 'https://res.cloudinary.com/dvibz13t8/image/upload/v1758347815/bg-galaxy_dn3jmx.png',
     planetImage = 'https://res.cloudinary.com/dvibz13t8/image/upload/v1758646374/planeta_1_liwvp0.png',
     rocketImage = 'https://res.cloudinary.com/dvibz13t8/image/upload/v1761075199/cohete_uxwkg2.png',
-}: TestLoadingProps) {
+    handleStarted,
+    isLoaded,
+    visible
+}: LoadingProps) {
     const [isClient, setIsClient] = useState(false);
     const [canvasSize, setCanvasSize] = useState(calculateCanvasSize());
     const [bgTexture, setBgTexture] = useState<Texture | null>(null);
     const [rocketTexture, setRocketTexture] = useState<Texture | null>(null);
     const [planetTexture, setPlanetTexture] = useState<Texture | null>(null);
-    const [isLoaded, setIsLoaded] = useState(false);
     const [isStarted, setIsStarted] = useState(false);
+    const [texturesLoaded, setTexturesLoaded] = useState(false);
 
     useEffect(() => {
         setIsClient(true);
 
-        Promise.all([
-            Assets.load<Texture>(galaxyImage),
-            Assets.load<Texture>(rocketImage),
-            Assets.load<Texture>(planetImage)
-        ]).then(([bgTex, rocketTex, planetTex]) => {
-            setBgTexture(bgTex);
-            setRocketTexture(rocketTex);
-            setPlanetTexture(planetTex);
-            setTimeout(() => setIsLoaded(true), 2000);
-        });
+        const loadAssets = async () => {
+            try {
+                
+                if (galaxyImage) {
+                    Assets.add({ alias: 'galaxy_bg', src: galaxyImage });
+                    const texture = await Assets.load<Texture>('galaxy_bg');
+                    setBgTexture(texture);
+                }
+
+                if (rocketImage) {
+                    Assets.add({ alias: 'rocket_img', src: rocketImage });
+                    const texture = await Assets.load<Texture>('rocket_img');
+                    setRocketTexture(texture);
+                }
+
+                if (planetImage) {
+                    Assets.add({ alias: 'planet_img', src: planetImage });
+                    const texture = await Assets.load<Texture>('planet_img');
+                    setPlanetTexture(texture);
+                }
+
+                setTexturesLoaded(true);
+
+            } catch (error) {
+                console.error("Error loading assets:", error);
+                setTexturesLoaded(true);
+            }
+        }
+
+        loadAssets();
 
     }, []);
 
-    return (isClient && (
-        <Application
-            width={canvasSize.width} 
-            height={canvasSize.height}
-            antialias={true}
-            resizeTo={window}
-            autoDensity={true}
+    const handleAnimationComplete = () => {
+        handleStarted(true);
+    };
+
+    return ((isClient && texturesLoaded) && (
+        <pixiContainer 
+            eventMode="static"
+            onPointerDown={() => isLoaded && setIsStarted(true)}
+            onTap={() => isLoaded && setIsStarted(true)}
+            hitArea={{
+                contains: () => true
+            } as any}
+            cursor={isLoaded ? 'pointer' : 'default'}
+            interactive={true}
+            visible={visible}
         >
-            <pixiContainer 
-                eventMode="static"
-                onPointerDown={() => isLoaded && setIsStarted(true)}
-                hitArea={{
-                    contains: () => true
-                } as any}
-                cursor={isLoaded ? 'pointer' : 'default'}
-            >
-                {bgTexture && (
-                    <pixiSprite 
-                        texture={bgTexture}
-                        width={canvasSize.width}
-                        height={canvasSize.height}
-                        alpha={0.4}
-                    />
-                )}
-                {planetTexture && (
-                    <PlanetSprite 
-                        texture={planetTexture}
-                        canvasWidth={canvasSize.width}
-                        canvasHeight={canvasSize.height}
-                        isStarted={isStarted}
-                    />
-                )}
-                {rocketTexture && (
-                    <RocketSprite 
-                        texture={rocketTexture}
-                        canvasWidth={canvasSize.width}
-                        canvasHeight={canvasSize.height}
-                        isStarted={isStarted}
-                    />
-                )}
-                <LoadingText 
-                    canvasWidth={canvasSize.width}
-                    canvasHeight={canvasSize.height}
-                    isLoaded={isLoaded}
+            {bgTexture && (
+                <pixiSprite 
+                    texture={bgTexture}
+                    width={canvasSize.width}
+                    height={canvasSize.height}
+                    alpha={0.4}
                 />
-                <WhiteOverlay 
+            )}
+            {planetTexture && (
+                <PlanetSprite 
+                    texture={planetTexture}
                     canvasWidth={canvasSize.width}
                     canvasHeight={canvasSize.height}
                     isStarted={isStarted}
                 />
-            </pixiContainer>
-        </Application>
+            )}
+            {rocketTexture && (
+                <RocketSprite 
+                    texture={rocketTexture}
+                    canvasWidth={canvasSize.width}
+                    canvasHeight={canvasSize.height}
+                    isStarted={isStarted}
+                />
+            )}
+            <LoadingText 
+                canvasWidth={canvasSize.width}
+                canvasHeight={canvasSize.height}
+                isLoaded={isLoaded}
+            />
+            <WhiteOverlay 
+                canvasWidth={canvasSize.width}
+                canvasHeight={canvasSize.height}
+                isStarted={isStarted}
+                onAnimationComplete={handleAnimationComplete}
+            />
+        </pixiContainer>
     ));
 }

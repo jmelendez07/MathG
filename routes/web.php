@@ -25,9 +25,6 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
-Route::get('/loading', function () {
-    return Inertia::render('test-loading');
-})->name('loading');
 Route::post('chatbot/message', [ChatBotController::class, 'message'])->name('chatbot.message');
 
 Route::middleware(['auth', 'verified'])->group(function () {

@@ -5,12 +5,10 @@ import { useEffect, useState, useMemo } from "react";
 
 interface StageUIProps {
     stage: Stage;
+    texture: Texture;
 }
 
-const stageAsset = 'https://res.cloudinary.com/dvibz13t8/image/upload/v1759327239/etapa_qicev8.png';
-
-export const StageUI = ({ stage }: StageUIProps) => {
-    const [texture, setTexture] = useState<Texture | null>(null);
+export const StageUI = ({ stage, texture }: StageUIProps) => {
     const { screenSize, scale } = useScreen();
 
     const textStyle = useMemo(() => new TextStyle({
@@ -18,12 +16,6 @@ export const StageUI = ({ stage }: StageUIProps) => {
         fontSize: 40 * scale,
         fontFamily: 'Jersey 10'
     }), [scale]);
-
-    useEffect(() => {
-        Assets.load<Texture>(stageAsset).then((tex) => {
-            setTexture(tex);
-        });
-    }, []);
 
     return (
         <>

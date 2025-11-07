@@ -4,7 +4,7 @@ import { UI } from '@/components/ui/pixi';
 import { EnemyUI } from '@/components/ui/pixi/enemy';
 import { HeroUI } from '@/components/ui/pixi/hero';
 import { Directions } from '@/enums/hero-directions';
-import { ALLOWED_KEYS, getPolygonCentroid, HERO_FRAME_SIZE, isPointInPolygon, MAP_SCALE } from '@/lib/utils';
+import { ALLOWED_KEYS, CONFIG_IMAGE_URL, getPolygonCentroid, HERO_FRAME_SIZE, isPointInPolygon, MAP_SCALE, MISSIONS_IMAGE_URL, STAGE_MAP_IMAGE_URL } from '@/lib/utils';
 import { useScreen } from '@/providers/screen-provider';
 import { useTeam } from '@/providers/team-provider';
 import { SharedData } from '@/types';
@@ -21,14 +21,22 @@ interface ExperienceProps {
     stage: Stage;
     initEnemies: Enemy[];
     cards: Card[];
+    handleTexturesLoaded: (value: boolean) => void;
+    visible: boolean;
 }
 
 extend({ Sprite, Container, Text });
 
-export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
+export const Experience = ({ stage, initEnemies, cards, handleTexturesLoaded, visible }: ExperienceProps) => {
     const { currentHero, teamHeroes, updateHeroHealth, changeCurrentHero, textures } = useTeam();
     const { auth } = usePage<SharedData>().props;
     const [stageTexture, setStageTexture] = useState<Texture | null>(null);
+    const [enemyTextures, setEnemyTextures] = useState<{ [key: string]: Texture }>({});
+    const [avatarFrameTexture, setAvatarFrameTexture] = useState<Texture>(Texture.EMPTY);
+    const [avatarProfileTexture, setAvatarProfileTexture] = useState<Texture>(Texture.EMPTY);
+    const [configTexture, setConfigTexture] = useState<Texture>(Texture.EMPTY);
+    const [missionsTexture, setMissionsTexture] = useState<Texture>(Texture.EMPTY);
+    const [stageMapTexture, setStageMapTexture] = useState<Texture>(Texture.EMPTY);
     const [keys, setKeys] = useState<KeyMap>({});
     const spriteRef = useRef<Sprite>(null);
     const cameraRef = useRef<Container>(null);
@@ -42,7 +50,7 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
     const [inCombat, setInCombat] = useState<boolean>(false);
     const [totalXpGained, setTotalXpGained] = useState(0);
     const [currentUserXp, setCurrentUserXp] = useState<number>(auth.user?.profile?.total_xp ?? 0);
-    const { scale, screenSize } = useScreen();
+    const { screenSize } = useScreen();
 
     const polygonPoints: [number, number][] = stage.points
         .map((p) => [p.x, p.y] as [number, number])
@@ -313,6 +321,68 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
             setKeys({});
         };
 
+        const loadAssets = async () => {
+            try {
+                if (stage.image_url) {
+                    Assets.add({ alias: 'stage_bg', src: stage.image_url });
+                    const texture = await Assets.load<Texture>('stage_bg');
+                    setStageTexture(texture);
+                }
+
+                const enemyLoadPromises = initEnemies.map(async (enemy) => {
+                    if (enemy.spritesheet) {
+                        Assets.add({ alias: `enemy_${enemy.id}`, src: enemy.spritesheet });
+                        const texture = await Assets.load<Texture>(`enemy_${enemy.id}`);
+                        return { id: enemy.id, texture };
+                    }
+                    return null;
+                });
+
+                const loadedEnemies = await Promise.all(enemyLoadPromises);
+                const enemyTexturesMap: { [key: string]: Texture } = {};
+                loadedEnemies.forEach((result) => {
+                    if (result) {
+                        enemyTexturesMap[result.id] = result.texture;
+                    }
+                });
+
+                setEnemyTextures(enemyTexturesMap);
+
+                if (auth.user?.profile) {
+                    const avatarFrameUrl = auth.user.profile.avatar_frame_url;
+                    const avatarUrl = auth.user.profile.avatar_url;
+
+                    if (avatarFrameUrl) {
+                        Assets.add({ alias: 'avatar_frame', src: avatarFrameUrl });
+                        const texture = await Assets.load<Texture>('avatar_frame');
+                        setAvatarFrameTexture(texture);
+                    }
+
+                    if (avatarUrl) {
+                        Assets.add({ alias: 'avatar_profile', src: avatarUrl });
+                        const texture = await Assets.load<Texture>('avatar_profile');
+                        setAvatarProfileTexture(texture);
+                    }
+                }
+
+                Assets.add({ alias: 'config_image', src: CONFIG_IMAGE_URL });
+                const configTex = await Assets.load<Texture>('config_image');
+                setConfigTexture(configTex);
+                
+                Assets.add({ alias: 'missions_image', src: MISSIONS_IMAGE_URL });
+                const missionsTex = await Assets.load<Texture>('missions_image');
+                setMissionsTexture(missionsTex);
+
+                Assets.add({ alias: 'stage_map', src: STAGE_MAP_IMAGE_URL });
+                const stageMapTex = await Assets.load<Texture>('stage_map');
+                setStageMapTexture(stageMapTex);
+
+                handleTexturesLoaded(true);
+            } catch (error) {
+                
+            }
+        }
+
         if (initEnemies.length > 0) {
             setEnemies(
                 initEnemies.map((enemy, index) => ({
@@ -322,6 +392,8 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
                 })),
             );
         }
+
+        loadAssets();
 
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
@@ -335,50 +407,46 @@ export const Experience = ({ stage, initEnemies, cards }: ExperienceProps) => {
 
     useTick((ticker: Ticker) => keysLoop(ticker.deltaTime));
 
-    return inCombat && combatEnemy ? (
-        <Combat
-            team={teamHeroes}
-            teamTextures={textures}
-            cards={cards}
-            enemies={[combatEnemy]}
-            currentStage={stage}
-            currentHero={currentHero}
-            onSetSelectedEnemies={onSetSelectedEnemies}
-            finish={finish}
-            lose={lose}
-        />
-    ) : (
-        <>
-            <UI stage={stage} />
-            <pixiContainer ref={cameraRef} sortableChildren={true}>
-                <HeroUI
-                   
-                    spriteRef={spriteRef}
-                    isMoving={Object.values(keys).some((v) => v)}
-                    isRunning={isRunning}
-                    direction={direction}
-                    x={centroid.x}
-                    y={centroid.y}
+    return (
+        <pixiContainer visible={visible}>
+            { (inCombat && combatEnemy) ? (
+                <Combat
+                    team={teamHeroes}
+                    teamTextures={textures}
+                    cards={cards}
+                    enemies={[combatEnemy]}
+                    currentStage={stage}
+                    currentHero={currentHero}
+                    onSetSelectedEnemies={onSetSelectedEnemies}
+                    finish={finish}
+                    lose={lose}
                 />
-                {enemies.map((enemy) => (
-                    <EnemyUI key={enemy.id} enemy={enemy} showInteraction={nearbyEnemy?.id === enemy.id} />
-                ))}
-                {stageTexture && <pixiSprite texture={stageTexture} x={0} y={0} zIndex={0} scale={MAP_SCALE} />}
-                <pixiGraphics
-                    draw={(g) => {
-                        g.clear();
-                        g.setStrokeStyle({
-                            width: 2,
-                            color: 0xa855f7,
-                            alpha: 1,
-                        });
-                        g.poly(polygonPoints.flat(), true);
-                        g.fill({ color: 0xa855f7, alpha: 0.15 });
-                    }}
-                    scale={MAP_SCALE}
-                    zIndex={2}
-                />
-            </pixiContainer>
-        </>
+            ) : (
+                <>
+                    <UI 
+                        stage={stage}
+                        avatarFrameTexture={avatarFrameTexture}
+                        avatarProfileTexture={avatarProfileTexture} 
+                        configTexture={configTexture}
+                        missionsTexture={missionsTexture}
+                        stageMapTexture={stageMapTexture}
+                    />
+                    <pixiContainer ref={cameraRef} sortableChildren={true}>
+                        <HeroUI
+                            spriteRef={spriteRef}
+                            isMoving={Object.values(keys).some((v) => v)}
+                            isRunning={isRunning}
+                            direction={direction}
+                            x={centroid.x}
+                            y={centroid.y}
+                        />
+                        {enemies.map((enemy) => enemyTextures[enemy.id] && (
+                            <EnemyUI key={enemy.id} enemy={enemy} texture={enemyTextures[enemy.id]} showInteraction={nearbyEnemy?.id === enemy.id} />
+                        ))}
+                        {stageTexture && <pixiSprite texture={stageTexture} x={0} y={0} zIndex={0} scale={MAP_SCALE} />}
+                    </pixiContainer>
+                </>
+            )}
+        </pixiContainer>        
     );
 };

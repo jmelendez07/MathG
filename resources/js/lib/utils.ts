@@ -48,3 +48,6 @@ export const HERO_MOVING_SPEED = 0.2;
 export const HERO_MOVING_SPEED_RUNNING = 0.45;
 export const MAP_SCALE = 1;
 export const ALLOWED_KEYS = ["KeyW", "KeyA", "KeyS", "KeyD", "Space"];
+export const CONFIG_IMAGE_URL = "https://res.cloudinary.com/dvibz13t8/image/upload/v1758740375/config_yzleae.webp";
+export const MISSIONS_IMAGE_URL = "https://res.cloudinary.com/dvibz13t8/image/upload/v1759276935/logo_misiones_lnllk0.png";
+export const STAGE_MAP_IMAGE_URL = "https://res.cloudinary.com/dvibz13t8/image/upload/v1759327239/etapa_qicev8.png";

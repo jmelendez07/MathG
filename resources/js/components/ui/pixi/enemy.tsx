@@ -2,16 +2,16 @@ import useEnemyAnimation from "@/components/enemy/useEnemyAnimation";
 import { useScreen } from "@/providers/screen-provider";
 import Enemy from "@/types/enemy";
 import { useTick } from "@pixi/react";
-import { Assets, Texture } from "pixi.js";
-import { useEffect, useRef, useState } from "react";
+import { Texture } from "pixi.js";
+import { useRef, useState } from "react";
 
 interface EnemyUIProps {
     enemy: Enemy;
+    texture: Texture;
     showInteraction?: boolean;
 }
 
-export const EnemyUI = ({ enemy, showInteraction }: EnemyUIProps) => {
-    const [texture, setTexture] = useState<Texture>(Texture.WHITE);
+export const EnemyUI = ({ enemy, texture, showInteraction }: EnemyUIProps) => {
     const pulseRef = useRef(0);
     const [pulseScale, setPulseScale] = useState(1);
     const { scale } = useScreen();
@@ -32,13 +32,6 @@ export const EnemyUI = ({ enemy, showInteraction }: EnemyUIProps) => {
             setPulseScale(1 + Math.sin(pulseRef.current) * 0.1);
         }
     });
-
-    useEffect(() => {
-        Assets.load<Texture>(enemy.spritesheet)
-            .then(text => {
-                setTexture(text);
-            })
-    }, []);
 
     return (sprite && (
         <>

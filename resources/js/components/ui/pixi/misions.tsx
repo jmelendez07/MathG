@@ -5,19 +5,17 @@ import { useTick } from "@pixi/react";
 import { Assets, Texture, TextStyle } from "pixi.js"
 import { useEffect, useState, useMemo } from "react"
 
-const missionsAsset = 'https://res.cloudinary.com/dvibz13t8/image/upload/v1759276935/logo_misiones_lnllk0.png'
-
 interface MissionsUIProps {
     stage: Stage;
+    texture: Texture;
 }
 
-export const MissionsUI = ({ stage }: MissionsUIProps) => {
-    const [missionsTexture, setMissionsTexture] = useState<Texture>(Texture.WHITE);
+export const MissionsUI = ({ stage, texture }: MissionsUIProps) => {
     const [xPosition, setXPosition] = useState(0);
     const { scale } = useScreen();
 
     const { sprite, updateSprite, handleHoverStart, handleHoverEnd, hovered } = useIconMissionAnimation({
-        texture: missionsTexture,
+        texture: texture,
         frameWidth: 254,
         frameHeight: 183,
         totalFrames: 7,
@@ -37,18 +35,6 @@ export const MissionsUI = ({ stage }: MissionsUIProps) => {
         fontFamily: 'Jersey 10',
         stroke: '#000000'
     }), [scale]);
-
-    useEffect(() => {
-        Assets.load<Texture>(missionsAsset).then((texture) => {
-            setMissionsTexture(texture);
-        });
-
-        return () => {
-            if (missionsTexture) {
-                missionsTexture.destroy(true);
-            }
-        };
-    }, []);
 
     useTick((ticker) => {
         updateSprite();

@@ -114,15 +114,12 @@ export default function GalaxiesShow({ galaxy, unlocked_planets, unlocked_stages
 
         const loadAssets = async () => {
             try {
-                // Cargar textura de fondo
                 if (galaxy.image_url) {
                     Assets.add({ alias: 'galaxy_bg', src: galaxy.image_url });
                     const texture = await Assets.load<Texture>('galaxy_bg');
-                    console.log('BG Texture loaded:', texture.width, texture.height, texture.source?.resource);
                     setBgTexture(texture);
                 }
 
-                // Cargar texturas de planetas
                 const planetLoadPromises = galaxy.planets.map(async (planet) => {
                     if (planet.image_url) {
                         Assets.add({ alias: `planet_${planet.id}`, src: planet.image_url });
@@ -139,15 +136,13 @@ export default function GalaxiesShow({ galaxy, unlocked_planets, unlocked_stages
                         texturesMap[result.id] = result.texture;
                     }
                 });
-                setPlanetTextures(texturesMap);
-
-                // Marcar que las texturas están cargadas
-                setTexturesLoaded(true);
                 
-                // Dar tiempo para que React procese el estado
+                setPlanetTextures(texturesMap);
+                setTexturesLoaded(true);
                 setTimeout(() => {
                     setAppReady(true);
                 }, 100);
+
             } catch (error) {
                 console.error('Error loading assets:', error);
                 // Aún así intentar mostrar la app

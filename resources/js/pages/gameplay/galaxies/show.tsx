@@ -39,8 +39,9 @@ export default function GalaxiesShow({ galaxy, unlocked_planets, unlocked_stages
     const [stageTextures, setStageTextures] = useState<{ [key: string]: Texture }>({});
     const [showStages, setShowStages] = useState(false);
     const [appReady, setAppReady] = useState(false);
+    const [texturesLoaded, setTexturesLoaded] = useState(false);
 
-    const { scale, screenSize } = useScreen();
+    const { scale } = useScreen();
 
     const titleStyle = useMemo(
         () =>
@@ -109,31 +110,55 @@ export default function GalaxiesShow({ galaxy, unlocked_planets, unlocked_stages
     useEffect(() => {
         setIsClient(true);
 
-        const timer = setTimeout(() => {
-            setAppReady(true);
-        }, 100);
-
         window.addEventListener('resize', updateCanvasSize);
 
-        if (galaxy.image_url) {
-            Assets.load<Texture>(galaxy.image_url).then((texture) => {
-                setBgTexture(texture);
-            });
-        }
+        const loadAssets = async () => {
+            try {
+                // Cargar textura de fondo
+                if (galaxy.image_url) {
+                    Assets.add({ alias: 'galaxy_bg', src: galaxy.image_url });
+                    const texture = await Assets.load<Texture>('galaxy_bg');
+                    console.log('BG Texture loaded:', texture.width, texture.height, texture.source?.resource);
+                    setBgTexture(texture);
+                }
 
-        galaxy.planets.forEach((planet) => {
-            if (planet.image_url) {
-                Assets.load<Texture>(planet.image_url).then((texture) => {
-                    setPlanetTextures((prev) => ({
-                        ...prev,
-                        [planet.id]: texture,
-                    }));
+                // Cargar texturas de planetas
+                const planetLoadPromises = galaxy.planets.map(async (planet) => {
+                    if (planet.image_url) {
+                        Assets.add({ alias: `planet_${planet.id}`, src: planet.image_url });
+                        const texture = await Assets.load<Texture>(`planet_${planet.id}`);
+                        return { id: planet.id, texture };
+                    }
+                    return null;
                 });
+
+                const loadedPlanets = await Promise.all(planetLoadPromises);
+                const texturesMap: { [key: string]: Texture } = {};
+                loadedPlanets.forEach((result) => {
+                    if (result) {
+                        texturesMap[result.id] = result.texture;
+                    }
+                });
+                setPlanetTextures(texturesMap);
+
+                // Marcar que las texturas están cargadas
+                setTexturesLoaded(true);
+                
+                // Dar tiempo para que React procese el estado
+                setTimeout(() => {
+                    setAppReady(true);
+                }, 100);
+            } catch (error) {
+                console.error('Error loading assets:', error);
+                // Aún así intentar mostrar la app
+                setTexturesLoaded(true);
+                setAppReady(true);
             }
-        });
+        };
+
+        loadAssets();
 
         return () => {
-            clearTimeout(timer);
             window.removeEventListener('resize', updateCanvasSize);
         };
     }, [updateCanvasSize, galaxy]);
@@ -269,7 +294,7 @@ export default function GalaxiesShow({ galaxy, unlocked_planets, unlocked_stages
 
     return (
         <>
-            {isClient && appReady && (
+            {isClient && appReady && texturesLoaded && (
                 <Application width={canvasSize.width} height={canvasSize.height} antialias={true} resizeTo={window} autoDensity={true}>
                     <pixiContainer>
                         {bgTexture && <pixiSprite texture={bgTexture} width={canvasSize.width} height={canvasSize.height} alpha={0.4} />}

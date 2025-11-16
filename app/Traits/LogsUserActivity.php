@@ -28,12 +28,23 @@ trait LogsUserActivity
             'execution_time' => $executionTime,
             'metadata' => array_merge([
                 'referer' => $request->header('referer'),
-                'url' => $request->fullUrl(),
+                'url' => $this->getFullUrl($request),
                 'method' => $request->method(),
             ], $additionalMetadata)
         ];
 
         SendKafkaLog::dispatch($topic, $logData, 'user-' . (Auth::id() ?? 'guest'));
+    }
+
+    private function getFullUrl(Request $request): string
+    {
+        $url = $request->fullUrl();
+        
+        if ($request->header('X-Forwarded-Proto') === 'https' && str_starts_with($url, 'http://')) {
+            $url = 'https://' . substr($url, 7);
+        }
+        
+        return $url;
     }
 
     private function sanitizeRequestData(array $data): array

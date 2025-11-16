@@ -7,26 +7,21 @@ use App\Models\Dificulty;
 use App\Models\Exercise;
 use App\Models\Galaxy;
 use App\Models\Stage;
+use App\Traits\LogsUserActivity;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class GameplayController extends Controller
 {
+    use LogsUserActivity;
+
     public function index()
     {
-        $randomEnemies = Enemy::raw(function ($collection) {
-            return $collection->aggregate([
-                ['$sample' => ['size' => 6]],
-                ['$project' => ['_id' => 1]],
-            ]);
-        });
-
+        $galaxy = Galaxy::firstOrFail();
         $easy = Dificulty::where('name', 'Fácil')->first()->id;
-
         $hero = Auth::user()->heroes()->first();
-
         $heroCards = $hero->cards()->with('type')->get();
-
         $cards = [];
         
         foreach ($heroCards as $card) {
@@ -34,15 +29,29 @@ class GameplayController extends Controller
             $cards[] = $card;
         }
 
-        $galaxy = Galaxy::firstOrFail();
-
         return redirect()->route('gameplay.galaxy', $galaxy->id);
     }
 
-    public function galaxy($galaxyId)
+    public function galaxy(Request $request, $galaxyId)
     {
+        $startTime = microtime(true);
+
         $galaxy = Galaxy::with(['planets.stages'])->findOrFail($galaxyId);
         $profile = Auth::user()->profile;
+
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'El usuario esta en el menu de la galaxia ' . $galaxy->name,
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
         
         return Inertia::render('gameplay/galaxies/show', [
             'galaxy' => $galaxy,
@@ -51,8 +60,10 @@ class GameplayController extends Controller
         ]);
     }
 
-    public function stage($stageId)
+    public function stage(Request $request, $stageId)
     {
+        $startTime = microtime(true);
+
         $stage = Stage::with(['points', 'missions'])->findOrFail($stageId);
         $nextStage = Stage::where('number', '>', $stage->number)
             ->orderBy('number', 'asc')
@@ -82,6 +93,20 @@ class GameplayController extends Controller
         }
 
         shuffle($cards);
+    
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Ha empezado el juego en ' . $stage->name,
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
         
         return Inertia::render('gameplay/stages/show', [
             'stage' => $stage,
@@ -92,8 +117,10 @@ class GameplayController extends Controller
         ]);
     }
     
-    public function nextStage()
+    public function nextStage(Request $request)
     {
+        $startTime = microtime(true);
+
         $profile = Auth::user()->profile;
         $currentStage = $profile->unlockedStages()->orderByDesc('number')->firstOrFail();
         $nextStage = Stage::where('number', '>', $currentStage->number)
@@ -106,6 +133,20 @@ class GameplayController extends Controller
                 $profile->unlockedPlanets()->attach($nextStage->planet_id);
             }
         }
+
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Ha paso al siguiente lugar: ' . $nextStage->name,
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
         
         return back()->with([
             'success' => true,

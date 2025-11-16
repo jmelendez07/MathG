@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Galaxy;
 use Inertia\Inertia;
 use App\Models\Planet;
+use App\Traits\LogsUserActivity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PlanetController extends Controller
 {
+    use LogsUserActivity;
+
     public $folder;
 
     public function __construct()
@@ -34,6 +38,8 @@ class PlanetController extends Controller
 
     public function store(Request $request)
     {
+        $startTime = microtime(true);
+
         $request->validate([
             'name' => 'required|unique:planets|string|max:255',
             'galaxy_id' => 'required|exists:galaxies,id',
@@ -45,7 +51,7 @@ class PlanetController extends Controller
             'folder' => $this->folder . '/planets'
         ]);
 
-        Planet::create([
+        $planet = Planet::create([
             'name' => $request->name,
             'number' => Planet::max('number') + 1,
             'galaxy_id' => $request->galaxy_id,
@@ -53,6 +59,20 @@ class PlanetController extends Controller
             'image_public_id' => $cloudinaryImage['public_id'],
             'description' => $request->description,
         ]);
+
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Nuevo planeta ' . $planet->name . ' creado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         return redirect()->route('planets.index')->with('success', 'Planeta creado exitosamente.');
     }
@@ -73,6 +93,7 @@ class PlanetController extends Controller
 
     public function update(Request $request, $planetId)
     {
+        $startTime = microtime(true);
         $planet = Planet::findOrFail($planetId);
 
         $request->validate([
@@ -100,11 +121,26 @@ class PlanetController extends Controller
         $planet->galaxy_id = $request->galaxy_id;
         $planet->save();
 
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Planeta ' . $planet->name . ' actualizado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         return redirect()->route('planets.index')->with('success', 'Planeta actualizado exitosamente.');
     }
 
-    public function destroy($planetId)
+    public function destroy(Request $request, $planetId)
     {
+        $startTime = microtime(true);
         $planet = Planet::findOrFail($planetId);
         
         if ($planet->image_public_id) {
@@ -117,6 +153,20 @@ class PlanetController extends Controller
         }
 
         $planet->delete();
+
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Planeta ' . $planet->name . ' eliminado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         return redirect()->route('planets.index')->with('success', 'Planeta eliminado exitosamente.');
     }

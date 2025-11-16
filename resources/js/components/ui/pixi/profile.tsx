@@ -1,13 +1,16 @@
 import { useScreen } from "@/providers/screen-provider";
 import { SharedData } from "@/types";
 import { usePage } from "@inertiajs/react";
-import { Assets, Graphics, TextStyle, Texture } from "pixi.js";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { Graphics, TextStyle, Texture } from "pixi.js";
+import { useCallback, useMemo } from "react";
 
-export const ProfileUI = () => {
+interface ProfileUIProps {
+    avatarFrameTexture: Texture;
+    avatarProfileTexture: Texture;
+}
+
+export const ProfileUI = ({ avatarFrameTexture, avatarProfileTexture }: ProfileUIProps) => {
     const { auth } = usePage<SharedData>().props;
-    const [avatarFrameTexture, setAvatarFrameTexture] = useState<Texture | null>(null);
-    const [avatarProfileTexture, setAvatarProfileTexture] = useState<Texture | null>(null);
     const { scale } = useScreen();
 
     const levelStyle = useMemo(() => new TextStyle({
@@ -28,24 +31,24 @@ export const ProfileUI = () => {
         stroke: { color: '#000000', width: 1 * scale },
     }), [scale]);
 
-    useEffect(() => {
-        if (auth.user?.profile) {
-            const avatarFrameUrl = auth.user.profile.avatar_frame_url;
-            const avatarUrl = auth.user.profile.avatar_url;
+    // useEffect(() => {
+    //     if (auth.user?.profile) {
+    //         const avatarFrameUrl = auth.user.profile.avatar_frame_url;
+    //         const avatarUrl = auth.user.profile.avatar_url;
 
-            if (avatarFrameUrl) {
-                Assets.load<Texture>(avatarFrameUrl).then((tex) => {
-                    setAvatarFrameTexture(tex);
-                });
-            }
+    //         if (avatarFrameUrl) {
+    //             Assets.load<Texture>(avatarFrameUrl).then((tex) => {
+    //                 setAvatarFrameTexture(tex);
+    //             });
+    //         }
 
-            if (avatarUrl) {
-                Assets.load<Texture>(avatarUrl).then((tex) => {
-                    setAvatarProfileTexture(tex);
-                });
-            }
-        }
-    }, [auth.user?.profile]);
+    //         if (avatarUrl) {
+    //             Assets.load<Texture>(avatarUrl).then((tex) => {
+    //                 setAvatarProfileTexture(tex);
+    //             });
+    //         }
+    //     }
+    // }, [auth.user?.profile]);
 
     const calculateXpPercentage = () => {
         if (!auth.user?.profile) return 0;

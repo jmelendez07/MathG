@@ -255,8 +255,11 @@ export default function Welcome() {
                         <div
                             className={`flex items-center space-x-3 transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}
                         >
-                            <Crown className="size-6 md:h-10 md:w-10 animate-pulse text-purple-300" />
-                            <h1 className="font-jersey text-3xl leading-6 lg:text-4xl text-white">{name}</h1>
+                            <img 
+                                src="https://res.cloudinary.com/dvibz13t8/image/upload/v1762189987/logo_MathG_x5vo20.png" 
+                                alt="MathG App" 
+                                className='w-auto h-6 md:h-20'
+                            />
                         </div>
 
                         <div

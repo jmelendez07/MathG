@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stage;
+use App\Traits\LogsUserActivity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class StageController extends Controller
 {
+    use LogsUserActivity;
+
     public $folder;
 
     public function __construct()
@@ -27,6 +31,8 @@ class StageController extends Controller
 
     public function store(Request $request)
     {
+        $startTime = microtime(true);
+
         $request->validate([
             'name' => 'required|unique:stages|string|max:255',
             'planet_id' => 'required|exists:planets,id',
@@ -44,6 +50,20 @@ class StageController extends Controller
             'image_url' => $cloudinaryImage['secure_url'],
             'image_public_id' => $cloudinaryImage['public_id'],
         ]);
+
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Nuevo lugar ' . $stage->name . ' creado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         return redirect()->back()->with('success', 'Lugar ' . $stage->name . ' creado exitosamente.');
     }
@@ -64,6 +84,7 @@ class StageController extends Controller
 
     public function update(Request $request, $stageId)
     {
+        $startTime = microtime(true);
         $stage = Stage::findOrFail($stageId);
 
         $request->validate([
@@ -87,11 +108,26 @@ class StageController extends Controller
         $stage->name = $request->name;
         $stage->save();
 
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Lugar ' . $stage->name . ' actualizado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
+
         return redirect()->back()->with('success', 'Lugar ' . $stage->name . ' actualizado exitosamente.');
     }
 
-    public function destroy($stageId)
+    public function destroy(Request $request, $stageId)
     {
+        $startTime = microtime(true);
         $stage = Stage::findOrFail($stageId);
 
         if ($stage->image_public_id) {
@@ -104,6 +140,20 @@ class StageController extends Controller
         }
 
         $stage->delete();
+
+        $user = Auth::user();
+        $this->logActivity(
+            $request,
+            'Lugar ' . $stage->name . ' eliminado',
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(),
+                'date' => now()->toDateTimeString(),
+            ],
+            $startTime
+        );
 
         return redirect()->back()->with('success', 'Lugar ' . $stage->name . ' eliminado exitosamente.');
     }

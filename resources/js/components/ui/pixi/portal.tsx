@@ -10,7 +10,7 @@ interface PortalUIProps {
     isVisible: boolean;
     title?: string;
     subtitle?: string;
-    nextStage: Stage | null;
+    nextStage?: Stage | null;
 }
 
 const titleStyle = new TextStyle({

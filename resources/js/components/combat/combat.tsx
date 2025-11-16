@@ -3,7 +3,7 @@ import IEnemy from '@/types/enemy';
 import Hero from '@/types/hero';
 import { extend, useTick } from '@pixi/react';
 import { Assets, Container, Graphics, Sprite, Texture } from 'pixi.js';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { ANIMATION_SPEED } from '../constants/game-world';
 import { useHeroAnimation } from '../../hooks/use-hero-animation';
 import CardsInHand from './combat/cards-in-hand';
@@ -66,6 +66,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
     const [attackingHeroIndex, setAttackingHeroIndex] = useState<number | null>(null);
     const { teamHeroes, updateHeroHealth } = useTeam();
     const { scale, screenSize } = useScreen();
+    const combatEndedRef = useRef(false); // ✅ Prevenir múltiples llamadas
 
     // Usar teamHeroes del context en lugar de team prop
     const activeTeam = teamHeroes.length > 0 ? teamHeroes : team;
@@ -253,15 +254,24 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
     }, []);
 
     useEffect(() => {
-        // ✅ CORREGIDO: Verificar si todos los héroes están muertos
+        console.log('Checking combat end conditions...');
+        // Solo ejecutar una vez por combate
+        if (combatEndedRef.current) return;
+        if (!enemies || enemies.length === 0) return;
+
         const allHeroesDead = activeTeam.every(hero => hero.current_health <= 0);
+        const allEnemiesDead = enemies.every((enemy) => enemy.health <= 0);
         
-        if (enemies.every((enemy) => enemy.health <= 0)) {
+        if (allEnemiesDead) {
+            combatEndedRef.current = true; // ✅ Marcar como finalizado
+            console.log('🎉 Victoria! XP ganado:', xpGained);
             finish(true, xpGained);
         } else if (allHeroesDead) {
+            combatEndedRef.current = true; // ✅ Marcar como finalizado
+            console.log('💀 Derrota!');
             lose();
         }
-    }, [activeTeam, enemies, xpGained]); // Agregar activeTeam como dependencia
+    }, [activeTeam, enemies, xpGained]);
 
     const changeCurrentHero = (heroId: string | null) => {
         if (heroId) {

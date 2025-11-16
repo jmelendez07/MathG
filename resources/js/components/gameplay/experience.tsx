@@ -16,9 +16,11 @@ import { router, usePage } from '@inertiajs/react';
 import { extend, useTick } from '@pixi/react';
 import { Assets, Container, Sprite, Texture, Ticker } from 'pixi.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { PortalUI } from '../ui/pixi/portal';
 
 interface ExperienceProps {
     stage: Stage;
+    nextStage?: Stage | null;
     initEnemies: Enemy[];
     cards: Card[];
     handleTexturesLoaded: (value: boolean) => void;
@@ -26,8 +28,9 @@ interface ExperienceProps {
 }
 
 extend({ Sprite, Container, Text });
+const portalAsset = 'https://res.cloudinary.com/dvibz13t8/image/upload/v1763250507/portal_hvw5tb.png';
 
-export const Experience = ({ stage, initEnemies, cards, handleTexturesLoaded, visible }: ExperienceProps) => {
+export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexturesLoaded, visible }: ExperienceProps) => {
     const { currentHero, teamHeroes, updateHeroHealth, changeCurrentHero, textures } = useTeam();
     const { auth } = usePage<SharedData>().props;
     const [stageTexture, setStageTexture] = useState<Texture | null>(null);
@@ -49,8 +52,11 @@ export const Experience = ({ stage, initEnemies, cards, handleTexturesLoaded, vi
     const [combatEnemy, setCombatEnemy] = useState<Enemy | null>(null);
     const [inCombat, setInCombat] = useState<boolean>(false);
     const [totalXpGained, setTotalXpGained] = useState(0);
+    const [portalTexture, setPortalTexture] = useState<Texture | null>(null);
     const [currentUserXp, setCurrentUserXp] = useState<number>(auth.user?.profile?.total_xp ?? 0);
-    const { screenSize } = useScreen();
+    const { scale, screenSize } = useScreen();
+    const [nearPortal, setNearPortal] = useState(false);
+    const [isPortalUIVisible, setIsPortalUIVisible] = useState(false);
 
     const polygonPoints: [number, number][] = stage.points
         .map((p) => [p.x, p.y] as [number, number])
@@ -234,6 +240,8 @@ export const Experience = ({ stage, initEnemies, cards, handleTexturesLoaded, vi
                     },
                     preserveState: true,
                     preserveScroll: true,
+                    replace: true,
+                    only: ['auth'],
                 },
             );
         } catch (error) {
@@ -244,7 +252,7 @@ export const Experience = ({ stage, initEnemies, cards, handleTexturesLoaded, vi
 
     const finish = (value: boolean, xpFromCombat: number) => {
         if (value && combatEnemy) {
-            setEnemies((enemies) => enemies.filter((enemy) => combatEnemy.id === enemy.id));
+            setEnemies((enemies) => enemies.filter((enemy) => combatEnemy.id !== enemy.id));
             setCombatEnemy(null);
         }
 
@@ -271,8 +279,25 @@ export const Experience = ({ stage, initEnemies, cards, handleTexturesLoaded, vi
     };
 
     useEffect(() => {
+        if (initEnemies.length > 0 && enemies.length === 0) {
+            setEnemies(
+                initEnemies.map((enemy, index) => ({
+                    ...enemy,
+                    map_position: generateRandomPosition(index),
+                    combat_position: generateRandomCombatPosition(index),
+                })),
+            );
+        }
+    }, [initEnemies]); // Solo cuando cambian los enemigos iniciales
+
+    // ✅ useEffect separado para texturas y event listeners
+    useEffect(() => {
         Assets.load(stage.image_url).then((result) => {
             setStageTexture(result);
+        });
+
+        Assets.load(portalAsset).then((result) => {
+            setPortalTexture(result);
         });
 
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -383,27 +408,47 @@ export const Experience = ({ stage, initEnemies, cards, handleTexturesLoaded, vi
             }
         }
 
-        if (initEnemies.length > 0) {
-            setEnemies(
-                initEnemies.map((enemy, index) => ({
-                    ...enemy,
-                    map_position: generateRandomPosition(index),
-                    combat_position: generateRandomCombatPosition(index),
-                })),
-            );
-        }
-
         loadAssets();
 
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
         window.addEventListener('blur', handleBlur);
+        
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
             window.removeEventListener('blur', handleBlur);
         };
-    }, [nearbyEnemy, inCombat]);
+    }, [nearbyEnemy, inCombat, teamHeroes, changeCurrentHero]);
+
+    useEffect(() => {
+        //chequear proximidad con el portal
+        if (
+            portalTexture &&
+            centroid &&
+            Math.hypot(
+                (centroid.x + 300) - (spriteRef.current?.x ?? 0),
+                (centroid.y + 300) - (spriteRef.current?.y ?? 0),
+            ) < 100
+        ) {
+            setNearPortal(true);
+        } else {
+            setNearPortal(false);
+        }
+    }, [portalTexture, centroid, spriteRef]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === 'KeyF' && nearPortal && !inCombat) {
+                setIsPortalUIVisible(true);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [nearPortal, inCombat]);
 
     useTick((ticker: Ticker) => keysLoop(ticker.deltaTime));
 
@@ -444,7 +489,37 @@ export const Experience = ({ stage, initEnemies, cards, handleTexturesLoaded, vi
                             <EnemyUI key={enemy.id} enemy={enemy} texture={enemyTextures[enemy.id]} showInteraction={nearbyEnemy?.id === enemy.id} />
                         ))}
                         {stageTexture && <pixiSprite texture={stageTexture} x={0} y={0} zIndex={0} scale={MAP_SCALE} />}
+                        {nearPortal && !inCombat && enemies.length === 0 && (
+                    <pixiText
+                        text="Presiona F para continuar"
+                        x={centroid.x + 170}
+                        y={centroid.y + 150}
+                        style={{
+                            fontSize: 32,
+                            fill: 0xffffff,
+                            fontFamily: 'Jersey 10',
+                            stroke: 0x000000,
+                        }}
+                    />
+                )}
+                {portalTexture && enemies.length === 0 && (
+                    <pixiSprite
+                        texture={portalTexture}
+                        x={centroid.x + 300}
+                        y={centroid.y + 300}
+                        anchor={{ x: 0.5, y: 0.5 }}
+                        scale={0.5}
+                        zIndex={1}
+                        height={220 * scale}
+                        width={220 * scale}
+                    />
+                )}
                     </pixiContainer>
+                    <PortalUI 
+                        canvasSize={screenSize}
+                        isVisible={isPortalUIVisible}
+                        nextStage={nextStage}
+                    />
                 </>
             )}
         </pixiContainer>        

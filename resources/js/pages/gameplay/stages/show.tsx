@@ -7,6 +7,7 @@ import Enemy from '@/types/enemy';
 import Hero from '@/types/hero';
 import { Stage as IStage } from '@/types/planet';
 import { Application, extend } from '@pixi/react';
+import { console } from 'inspector';
 import { Container, Graphics, Sprite, Text } from 'pixi.js';
 import { useEffect, useState } from 'react';
 
@@ -14,12 +15,13 @@ extend({ Sprite, Container, Graphics, Text });
 
 interface TestStageProps {
     stage: IStage;
+    nextStage?: IStage | null;
     heroes: Hero[];
     enemies: Enemy[];
     cards: Card[];
 }
 
-export default function TestStage({ stage, heroes, enemies, cards }: TestStageProps) {
+export default function TestStage({ stage, nextStage, heroes, enemies, cards }: TestStageProps) {
     const [isClient, setIsClient] = useState<boolean>(false);
     const { screenSize } = useScreen();
     const [texturesLoaded, setTexturesLoaded] = useState<boolean>(false);
@@ -34,7 +36,7 @@ export default function TestStage({ stage, heroes, enemies, cards }: TestStagePr
             <Application antialias={true} autoDensity={true} width={screenSize.width} background={0x000000} height={screenSize.height} resizeTo={window}>
                 <TeamProvider initialHeroes={heroes}>
                     <Loading handleStarted={(value: boolean) => setIsStarted(value)} isLoaded={texturesLoaded} visible={!isStarted} />
-                    <Experience stage={stage} initEnemies={enemies} cards={cards} handleTexturesLoaded={(value: boolean) => setTexturesLoaded(value)} visible={isStarted} />
+                    <Experience stage={stage} nextStage={nextStage} initEnemies={enemies} cards={cards} handleTexturesLoaded={(value: boolean) => setTexturesLoaded(value)} visible={isStarted} />
                 </TeamProvider>
             </Application>
         )

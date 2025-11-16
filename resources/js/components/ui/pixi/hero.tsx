@@ -35,7 +35,6 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
     const previousHeroIdRef = useRef(currentHero.id);
     const {scale} = useScreen();
 
-    // Reset animación cuando cambia el héroe
     useEffect(() => {
         if (previousHeroIdRef.current !== currentHero.id) {
             frameRef.current = 0;
@@ -43,7 +42,6 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
             setParticles([]);
             previousHeroIdRef.current = currentHero.id;
             
-            // Forzar actualización inicial del sprite sin cambiar posición
             if (currentHero.texture) {
                 const frame = new Rectangle(0, getRow(direction) * HERO_FRAME_SIZE, HERO_FRAME_SIZE, HERO_FRAME_SIZE);
                 const texture = new Texture({
@@ -91,7 +89,6 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
 
             column = frameRef.current;
         } else {
-            // Cuando no se mueve, mostrar el frame 0 (idle)
             column = 0;
         }
 
@@ -119,7 +116,6 @@ export const HeroUI = ({ x, y, direction, isMoving, isRunning, spriteRef }: Hero
 
     useTick(updateSprite);
 
-    // No renderizar nada hasta que tengamos un sprite válido
     if (!sprite || !currentHero.texture) {
         return null;
     }

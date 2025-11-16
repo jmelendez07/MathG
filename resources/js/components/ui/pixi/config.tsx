@@ -6,11 +6,13 @@ import { useScreen } from '@/providers/screen-provider';
 
 extend({ Container, Sprite, Graphics, Text });
 
-const configImage = "https://res.cloudinary.com/dvibz13t8/image/upload/v1758740375/config_yzleae.webp";
 
-export default function ConfigUI() {
+interface ConfigUIProps {
+    texture: Texture;
+}
+
+export default function ConfigUI({ texture }: ConfigUIProps) {
     const [showModal, setShowModal] = useState(false);
-    const [configTexture, setConfigTexture] = useState<Texture | null>(null);
     const [animationProgress, setAnimationProgress] = useState(0);
     const [hoverMenu, setHoverMenu] = useState(false);
     const [hoverFullscreen, setHoverFullscreen] = useState(false);
@@ -25,10 +27,6 @@ export default function ConfigUI() {
     const backgroundRef = useRef<any>(null);
 
     const { screenSize, toggleFullscreen, isFullscreen, scale } = useScreen();
-
-    useState(() => {
-        Assets.load(configImage).then(setConfigTexture);
-    });
 
     useTick((ticker) => {
         if (showModal && animationProgress < 1) {
@@ -152,7 +150,7 @@ export default function ConfigUI() {
 
     return (
         <pixiContainer zIndex={1000}>
-            {configTexture && (
+            {texture && (
                 <pixiContainer
                     x={screenSize.width - 80 * scale}
                     y={20 * scale}
@@ -163,7 +161,7 @@ export default function ConfigUI() {
                     zIndex={1000}
                 >   
                     <pixiSprite
-                        texture={configTexture}
+                        texture={texture}
                         anchor={0.5}
                         x={30 * scale}
                         y={30 * scale}

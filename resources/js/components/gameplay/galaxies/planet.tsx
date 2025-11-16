@@ -59,22 +59,18 @@ export default function Planet({
         let nextY = pos.y;
 
         if (transitionStage === 'enter' && targetX !== undefined && targetY !== undefined && targetScale !== undefined) {
-            // Animar hacia el centro y escala grande
             nextScale += (targetScale - nextScale) * 0.15;
             nextX += (targetX - nextX) * 0.15;
             nextY += (targetY - nextY) * 0.15;
 
-            // Detecta fin de animación
             if (Math.abs(nextScale - targetScale) < 0.01 && Math.abs(nextX - targetX) < 1 && Math.abs(nextY - targetY) < 1 && onTransitionEnd) {
                 onTransitionEnd();
             }
         } else if (transitionStage === 'exit' && targetX !== undefined && targetY !== undefined) {
-            // Animar hacia posición y escala original
             nextScale += (baseScale - nextScale) * 0.15;
             nextX += (targetX - nextX) * 0.15;
             nextY += (targetY - nextY) * 0.15;
 
-            // Detecta fin de animación
             if (Math.abs(nextScale - baseScale) < 0.01 && Math.abs(nextX - targetX) < 1 && Math.abs(nextY - targetY) < 1 && onTransitionEnd) {
                 onTransitionEnd();
             }

@@ -66,10 +66,8 @@ export const TeamProvider = ({ children, initialHeroes }: { children: ReactNode;
                 const texturePromises = teamHeroes.map((hero) => Assets.load<Texture>(hero.spritesheet));
                 const loadedTextures = await Promise.all(texturePromises);
 
-                console.log('✅ Textures loaded successfully:', loadedTextures);
-
                 setTextures(loadedTextures);
-                texturesRef.current = loadedTextures; // Guardar en ref también
+                texturesRef.current = loadedTextures;
                 setTexturesLoaded(true);
                 texturesLoadedRef.current = true;
 

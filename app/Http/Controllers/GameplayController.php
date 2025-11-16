@@ -54,6 +54,9 @@ class GameplayController extends Controller
     public function stage($stageId)
     {
         $stage = Stage::with(['points', 'missions'])->findOrFail($stageId);
+        $nextStage = Stage::where('number', '>', $stage->number)
+            ->orderBy('number', 'asc')
+            ->first();
         $heroes = Auth::user()->heroes()->with(['cards.type', 'heroAnimations', 'heroRole'])->get();
         $easy = Dificulty::where('name', 'Fácil')->firstOrFail()->id;
 
@@ -82,6 +85,7 @@ class GameplayController extends Controller
         
         return Inertia::render('gameplay/stages/show', [
             'stage' => $stage,
+            'nextStage' => $nextStage,
             'heroes' => $heroes,
             'enemies' => $enemies,
             'cards' => $cards,

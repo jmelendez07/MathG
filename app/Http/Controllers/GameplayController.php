@@ -20,12 +20,15 @@ class GameplayController extends Controller
     {
         $galaxy = Galaxy::firstOrFail();
         $easy = Dificulty::where('name', 'Fácil')->first()->id;
+        $medium = Dificulty::where('name', 'Media')->first()->id;
+        $hard = Dificulty::where('name', 'Difícil')->first()->id;
         $hero = Auth::user()->heroes()->first();
         $heroCards = $hero->cards()->with('type')->get();
         $cards = [];
         
         foreach ($heroCards as $card) {
-            $card->exercise = $this->randomExercise($easy);
+            $selectedDifficulty = collect([$easy, $medium, $hard])->random();
+            $card->exercise = $this->randomExercise($selectedDifficulty);
             $cards[] = $card;
         }
 
@@ -70,6 +73,8 @@ class GameplayController extends Controller
             ->first();
         $heroes = Auth::user()->heroes()->with(['cards.type', 'heroAnimations', 'heroRole'])->get();
         $easy = Dificulty::where('name', 'Fácil')->firstOrFail()->id;
+        $medium = Dificulty::where('name', 'Media')->firstOrFail()->id;
+        $hard = Dificulty::where('name', 'Difícil')->firstOrFail()->id;
 
         $enemies = [];
 
@@ -87,7 +92,8 @@ class GameplayController extends Controller
 
         foreach($heroes as $hero){
             foreach($hero->cards as $card) {
-                $card->exercise = $this->randomExercise($easy);
+                $selectedDifficulty = collect([$easy, $medium, $hard])->random();
+                $card->exercise = $this->randomExercise($selectedDifficulty);
                 $cards[] = $card;
             }
         }
@@ -154,10 +160,10 @@ class GameplayController extends Controller
         ], 200);
     }
 
-    public function randomExercise($difficultyId)
+    public function randomExercise($selectedDifficulty)
     {
         $exercises = Exercise::with('steps.options')
-            ->where('difficulty_id', $difficultyId)
+            ->where('difficulty_id', $selectedDifficulty)
             ->get();
         
         return $exercises->random();

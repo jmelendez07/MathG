@@ -37,6 +37,11 @@ class PlanetFactory extends Factory
             $this->makeExercise2($easy->id, $planet->id);
             $this->makeExercise3($easy->id, $planet->id);
             $this->makeExercise4($easy->id, $planet->id);
+            $this->makeExercise5($medium->id, $planet->id);
+            $this->makeExercise6($medium->id, $planet->id);
+            $this->makeExercise7($hard->id, $planet->id);
+            $this->makeExercise8($hard->id, $planet->id);
+            $this->makeExercise9($hard->id, $planet->id);
         });
     }
 
@@ -428,6 +433,501 @@ class PlanetFactory extends Factory
         Option::factory()->create([
             'step_id' => $step3->id,
             'result' => "F'(x) = 2x^2",
+            'is_correct' => false
+        ]);
+    }
+
+    public function makeExercise5($dificultyId, $planetId)
+    {
+        $exercise = Exercise::factory()->create([
+            'operation' => "f'(x) = 1/x",
+            'planet_id' => $planetId,
+            'difficulty_id' => $dificultyId
+        ]);
+
+        $step1 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 1,
+            'description' => 'Desapejar la x de la fraccion usando las reglas del algebra'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '-1 * x^(-1)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '1 * x^(1)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '1 * x^(-1)',
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '1/x^(-1)',
+            'is_correct' => false
+        ]);
+
+        $step2 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 2,
+            'description' => 'Aplicar la regla de la potencia'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '-1x^(-2)',
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '1x^(0)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '1x^(-2)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '-1x^(1)',
+            'is_correct' => false
+        ]);
+
+        $step3 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 3,
+            'description' => 'Escribir la respuesta final'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 1/x^2",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = -1/x^2",
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 1/x",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = -1/x",
+            'is_correct' => false
+        ]);
+    }
+
+    public function makeExercise6($dificultyId, $planetId)
+    {
+        $exercise = Exercise::factory()->create([
+            'operation' => "f'(x) = 5/x^3",
+            'planet_id' => $planetId,
+            'difficulty_id' => $dificultyId
+        ]);
+
+        $step1 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 1,
+            'description' => 'Desapejar la x de la fraccion usando las reglas del algebra'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '5 * x^3',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '5 * x^(-3)',
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '-5 * x^(-3)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '5 / x^(-3)',
+            'is_correct' => false
+        ]);
+
+        $step2 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 2,
+            'description' => 'Aplicar la regla de la potencia'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '-15x^(-4)',
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '15x^(-2)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '5x^(-4)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '-5x^(-2)',
+            'is_correct' => false
+        ]);
+
+        $step3 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 3,
+            'description' => 'Escribir la respuesta final'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 5/x^4",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = -15/x^4",
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 5/x^3",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = -5/x^3",
+            'is_correct' => false
+        ]);
+    }
+
+    public function makeExercise7($dificultyId, $planetId)
+    {
+        $exercise = Exercise::factory()->create([
+            'operation' => "f'(x) = 2x^2 / 3x^6",
+            'planet_id' => $planetId,
+            'difficulty_id' => $dificultyId
+        ]);
+
+        $step1 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 1,
+            'description' => 'Desapejar la x de la fraccion usando las reglas del algebra'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '(2/3)x^(2+6)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '(3/2)x^(2-6)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '(3/2)x^(2+6)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '(2/3)x^(2-6)',
+            'is_correct' => true
+        ]);
+
+        $step2 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 2,
+            'description' => 'Aplicar la regla de la potencia'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '(2/3)(-4)x^(-5)',
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '(2/3)(4)x^(-7)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '(3/2)(-4)x^(-5)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '(3/2)(4)x^(-7)',
+            'is_correct' => false
+        ]);
+
+        $step3 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 3,
+            'description' => 'Escribir la respuesta final'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 8/3x^5",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = -8/3x^5",
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 2/3x^6",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = -2/3x^6",
+            'is_correct' => false
+        ]);
+    }
+
+    public function makeExercise8($dificultyId, $planetId)
+    {
+        $exercise = Exercise::factory()->create([
+            'operation' => "f'(x) = 2x/x^2",
+            'planet_id' => $planetId,
+            'difficulty_id' => $dificultyId
+        ]);
+
+        $step1 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 1,
+            'description' => 'Desapejar la x de la fraccion usando las reglas del algebra'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '2x^(1-2)',
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => '2x^(1+2)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => 'x^(1-2)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => 'x^(1+2)',
+            'is_correct' => false
+        ]);
+
+        $step2 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 2,
+            'description' => 'Aplicar la regla de la potencia'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '2(-1)x^(-2)',
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '2(1)x^(0)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '1(-1)x^(-2)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '1(1)x^(0)',
+            'is_correct' => false
+        ]);
+
+        $step3 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 3,
+            'description' => 'Escribir la respuesta final'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 2/x^2",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = -2/x^2",
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 2/x",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = -2/x",
+            'is_correct' => false
+        ]);
+    }
+
+    public function makeExercise9($dificultyId, $planetId)
+    {
+        $exercise = Exercise::factory()->create([
+            'operation' => "f'(x) = ∛x^2",
+            'planet_id' => $planetId,
+            'difficulty_id' => $dificultyId
+        ]);
+
+        $step1 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 1,
+            'description' => 'Reescribir la raiz como una potencia'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => 'x^(2/3)',
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => 'x^(3/2)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => 'x^(2*3)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step1->id,
+            'result' => 'x^(3*2)',
+            'is_correct' => false
+        ]);
+
+        $step2 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 2,
+            'description' => 'Aplicar la regla de la potencia'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '(2/3)x^(-1/3)',
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '(3/2)x^(1/3)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '(2/3)x^(1/3)',
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step2->id,
+            'result' => '(3/2)x^(-1/3)',
+            'is_correct' => false
+        ]);
+
+        $step3 = Step::factory()->create([
+            'exercise_id' => $exercise->id,
+            'order' => 3,
+            'description' => 'Escribir la respuesta final'
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 2/3√x^2",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 2/3√x^(1/3)",
+            'is_correct' => true
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 3/2√x^2",
+            'is_correct' => false
+        ]);
+
+        Option::factory()->create([
+            'step_id' => $step3->id,
+            'result' => "F'(x) = 3/2∛x",
             'is_correct' => false
         ]);
     }

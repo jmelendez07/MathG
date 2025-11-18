@@ -55,8 +55,6 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
     };
 
     const floatOffset = Math.sin(floatAnimation) * 3;
-    
-    console.log('Rendering Enemy:', enemy.name, 'at position', enemy.combat_position);
 
     return (
         <>

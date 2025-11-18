@@ -1,11 +1,16 @@
+import useBgCombatAnimation from '@/hooks/animations/useBgCombatAnimation';
+import { useScreen } from '@/providers/screen-provider';
+import { useTeam } from '@/providers/team-provider';
 import ICard from '@/types/card';
 import IEnemy from '@/types/enemy';
 import Hero from '@/types/hero';
+import { Stage } from '@/types/planet';
 import { extend, useTick } from '@pixi/react';
 import { Assets, Container, Graphics, Sprite, Texture } from 'pixi.js';
-import { useCallback, useEffect, useState, useRef } from 'react';
-import { ANIMATION_SPEED } from '../constants/game-world';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHeroAnimation } from '../../hooks/use-hero-animation';
+import { ANIMATION_SPEED } from '../constants/game-world';
+import { CombatUI } from './combat-ui/combat-ui';
 import CardsInHand from './combat/cards-in-hand';
 import DiscardedCardsModal from './combat/discarded-cards-modal';
 import DiscardedCardsStack from './combat/discarded-cards-stack';
@@ -15,11 +20,6 @@ import StolenCardsStack from './combat/stolen-cards-stack';
 import { Enemy } from './enemy/enemy';
 import { Exercise } from './exercise/exercise';
 import HeroStats from './hero-stats';
-import { CombatUI } from './combat-ui/combat-ui';
-import { Stage } from '@/types/planet';
-import { useTeam } from '@/providers/team-provider';
-import { useScreen } from '@/providers/screen-provider';
-
 
 extend({ Sprite, Container, Graphics });
 
@@ -42,7 +42,7 @@ interface ICombatEnemiesProps {
 const MAX_CARDS_IN_HAND = 4;
 
 const assetEnergy = '/assets/energy.png';
-const spriteBgCombat = '/assets/bg-battle.jpg';
+const spriteBgCombat = 'https://res.cloudinary.com/dvibz13t8/image/upload/v1763503040/campo_hnuxk8_k2yehr.png';
 
 export const Combat = ({ team, teamTextures, enemies, cards, currentHero, currentStage, onSetSelectedEnemies, finish, lose }: ICombatProps) => {
     const [teamEnergy, setTeamEnergy] = useState(4);
@@ -74,7 +74,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
     const [currentHeroInCombatId, setCurrentHeroInCombatId] = useState<string>(currentHero.id);
 
     // ✅ Obtener el héroe actual desde activeTeam (siempre actualizado desde el context)
-    const currentHeroInCombat = activeTeam.find(h => h.id === currentHeroInCombatId) || activeTeam[0];
+    const currentHeroInCombat = activeTeam.find((h) => h.id === currentHeroInCombatId) || activeTeam[0];
 
     // Crear hooks de animación dinámicamente basados en el equipo activo
     const hero0Animation = useHeroAnimation({
@@ -83,7 +83,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
         frameHeight: 64,
         totalTilesFrames: activeTeam[0]?.hero_animations.find((anim) => anim.action === 'fighting')?.totalTilesFrames || 2,
         animationSpeed: ANIMATION_SPEED,
-        heroAnimation: activeTeam[0]?.hero_animations.find((anim) => anim.action === 'fighting') || activeTeam[0]?.hero_animations[0]
+        heroAnimation: activeTeam[0]?.hero_animations.find((anim) => anim.action === 'fighting') || activeTeam[0]?.hero_animations[0],
     });
 
     const hero1Animation = useHeroAnimation({
@@ -92,7 +92,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
         frameHeight: 64,
         totalTilesFrames: activeTeam[1]?.hero_animations.find((anim) => anim.action === 'fighting')?.totalTilesFrames || 2,
         animationSpeed: ANIMATION_SPEED,
-        heroAnimation: activeTeam[1]?.hero_animations.find((anim) => anim.action === 'fighting') || activeTeam[1]?.hero_animations[0]
+        heroAnimation: activeTeam[1]?.hero_animations.find((anim) => anim.action === 'fighting') || activeTeam[1]?.hero_animations[0],
     });
 
     const hero2Animation = useHeroAnimation({
@@ -101,7 +101,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
         frameHeight: 64,
         totalTilesFrames: activeTeam[2]?.hero_animations.find((anim) => anim.action === 'fighting')?.totalTilesFrames || 2,
         animationSpeed: ANIMATION_SPEED,
-        heroAnimation: activeTeam[2]?.hero_animations.find((anim) => anim.action === 'fighting') || activeTeam[2]?.hero_animations[0]
+        heroAnimation: activeTeam[2]?.hero_animations.find((anim) => anim.action === 'fighting') || activeTeam[2]?.hero_animations[0],
     });
 
     const hero3Animation = useHeroAnimation({
@@ -110,7 +110,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
         frameHeight: 64,
         totalTilesFrames: activeTeam[3]?.hero_animations.find((anim) => anim.action === 'fighting')?.totalTilesFrames || 2,
         animationSpeed: ANIMATION_SPEED,
-        heroAnimation: activeTeam[3]?.hero_animations.find((anim) => anim.action === 'fighting') || activeTeam[3]?.hero_animations[0]
+        heroAnimation: activeTeam[3]?.hero_animations.find((anim) => anim.action === 'fighting') || activeTeam[3]?.hero_animations[0],
     });
 
     // Hook para animación de ataque
@@ -120,7 +120,9 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
         frameHeight: 64,
         totalTilesFrames: activeTeam[attackingHeroIndex || 0]?.hero_animations.find((anim) => anim.action === 'attack')?.totalTilesFrames || 8,
         animationSpeed: ANIMATION_SPEED,
-        heroAnimation: activeTeam[attackingHeroIndex || 0]?.hero_animations.find((anim) => anim.action === 'attack') || activeTeam[attackingHeroIndex || 0]?.hero_animations[0]
+        heroAnimation:
+            activeTeam[attackingHeroIndex || 0]?.hero_animations.find((anim) => anim.action === 'attack') ||
+            activeTeam[attackingHeroIndex || 0]?.hero_animations[0],
     });
 
     // Array de animaciones para facilitar el acceso
@@ -191,21 +193,22 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
         // ✅ CORREGIDO: Daño a héroe aleatorio del equipo
         enemies.forEach((enemy) => {
             // Filtrar solo héroes vivos
-            const aliveHeroes = activeTeam.filter(hero => hero.current_health > 0);
-            
+            const aliveHeroes = activeTeam.filter((hero) => hero.current_health > 0);
+
             if (aliveHeroes.length > 0) {
                 const randomHeroIndex = Math.floor(Math.random() * aliveHeroes.length);
                 const heroToDamage = aliveHeroes[randomHeroIndex];
                 const damage = enemy.basic_attack;
                 const newHealth = Math.max(0, heroToDamage.current_health - damage);
-                
+
                 // Actualizar en el context
-                updateHeroHealth(heroToDamage.id, newHealth);  
+                updateHeroHealth(heroToDamage.id, newHealth);
             }
         });
     };
 
     useTick(() => {
+
         if (isAttackingAnimation && attackingHeroIndex !== null) {
             const keepPlaying = attackAnimation.updateAttackSprite('RIGHT', false, false, false, true);
             if (!keepPlaying) {
@@ -238,8 +241,14 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
     useEffect(() => {
         let cancelled = false;
 
+        console.log('Loading combat background texture from:', spriteBgCombat);
         Assets.load<Texture>(spriteBgCombat).then((tex) => {
             if (!cancelled) {
+                console.log('✅ Combat texture loaded successfully!');
+                console.log('Texture width:', tex.width);
+                console.log('Texture height:', tex.height);
+                console.log('Texture source valid:', tex.source ? 'YES' : 'NO');
+                console.log('Texture:', tex);
                 setCombatTexture(tex);
             }
         });
@@ -254,14 +263,13 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
     }, []);
 
     useEffect(() => {
-        console.log('Checking combat end conditions...');
         // Solo ejecutar una vez por combate
         if (combatEndedRef.current) return;
         if (!enemies || enemies.length === 0) return;
 
-        const allHeroesDead = activeTeam.every(hero => hero.current_health <= 0);
+        const allHeroesDead = activeTeam.every((hero) => hero.current_health <= 0);
         const allEnemiesDead = enemies.every((enemy) => enemy.health <= 0);
-        
+
         if (allEnemiesDead) {
             combatEndedRef.current = true; // ✅ Marcar como finalizado
             console.log('🎉 Victoria! XP ganado:', xpGained);
@@ -275,17 +283,36 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
 
     const changeCurrentHero = (heroId: string | null) => {
         if (heroId) {
-            const hero = activeTeam.find(h => h.id === heroId);
+            const hero = activeTeam.find((h) => h.id === heroId);
             if (hero) {
                 setCurrentHeroInCombatId(hero.id);
                 console.log(`Héroe actual en combate cambiado a: ${hero.name}`);
             }
         }
-    }
+    };
 
     return (
         <pixiContainer>
-            {combatTexture && <pixiSprite texture={combatTexture} width={window.innerWidth} height={window.innerHeight} x={0} y={0} />}
+            {combatTexture && combatTexture !== Texture.EMPTY && (
+                <pixiSprite
+                    texture={combatTexture} // ✅ Usar la textura completa directamente
+                    width={screenSize.width}
+                    height={screenSize.height}
+                    x={0}
+                    y={0}
+                />
+            )}
+
+            {/* {bgCombatSprite && combatTexture && (
+                <pixiSprite
+                    texture={bgCombatSprite.texture}
+                    width={screenSize.width} 
+                    height={screenSize.height} 
+                    x={0}
+                    y={0}
+                    anchor={0} 
+                />
+            )} */}
 
             <CombatUI teamHeroes={activeTeam} currentTurn={turn + 1} currentStage={currentStage} />
 
@@ -300,7 +327,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                 const spacing = 120 * scale;
 
                 const isAttackSprite = isAttackingAnimation && attackingHeroIndex === index;
-                const spriteWidth = isAttackSprite ? 384 * scale : 128 * scale;
+                const spriteWidth = isAttackSprite ? 384 * scale : 168 * scale;
                 const normalWidth = 128 * scale;
 
                 const adjustedX = isAttackSprite ? baseX - (spriteWidth - normalWidth) / 2 : baseX;
@@ -310,10 +337,10 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                         <pixiSprite
                             key={`hero-${hero.id}-${index}`}
                             texture={heroSprite.texture}
-                            x={adjustedX}
-                            y={baseY + index * spacing}
+                            x={adjustedX - 100 * scale}
+                            y={baseY + index * spacing + 50 * scale}
                             width={spriteWidth}
-                            height={128 * scale}
+                            height={168 * scale}
                         />
                     )
                 );
@@ -327,7 +354,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                         key={`enemy-target-${enemy.id}-${index}`}
                         draw={(g) => {
                             g.clear();
-                            g.rect(enemy.combat_position?.x || 0, enemy.combat_position?.y || 0, 128 * scale, 128 * scale);
+                            g.rect((enemy.combat_position?.x || 0) + 20, (enemy.combat_position?.y || 0) + 20, 150 * scale, 150 * scale);
                             g.stroke({ color: isTargetAssigned && selectedEnemy?.id === enemy.id ? 0x00ff00 : 0xff0000, width: 5 * scale });
                         }}
                     />
@@ -354,11 +381,11 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                 isDisabled={teamEnergy <= 0}
                 setCurrentHeroInCombatId={changeCurrentHero}
             />
-            
+
             <StolenCardsStack onClick={(value) => setShowStolenCardsModal(value)} cards={stolenCards} />
             <NextTurnButton onClick={nextTurn} />
             <DiscardedCardsStack onClick={(value) => setShowDiscardedCardsModal(value)} cards={discardedCards} />
-            
+
             {isAttacking && selectedCard && selectedEnemy && selectedCard.exercise && (
                 <Exercise
                     enemy={selectedEnemy}
@@ -373,7 +400,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                     attack={attack}
                 />
             )}
-            
+
             <DiscardedCardsModal cards={discardedCards} onClose={(value) => setShowDiscardedCardsModal(value)} isOpen={showDiscardedCardsModal} />
             <StolenCardsModal cards={stolenCards} onClose={(value) => setShowStolenCardsModal(value)} isOpen={showStolenCardsModal} />
         </pixiContainer>

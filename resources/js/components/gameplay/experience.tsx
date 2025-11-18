@@ -90,10 +90,10 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
         const calculatedY = baseY + row * spacing + randomOffsetY;
 
         return {
-            x: Math.max(150, Math.min(baseX + col * spacing + randomOffsetX, screenSize.width - 150)),
-            y: Math.max(minY, Math.min(calculatedY, maxY - 50)),
+            x: Math.max(150, Math.min(baseX + col * spacing + randomOffsetX, screenSize.width - 150)) + 500 * scale,
+            y: Math.max(minY, Math.min(calculatedY, maxY - 50)) + 100 * scale,
         };
-    }, [screenSize]);
+    }, [screenSize, scale]);
 
     const keysLoop = useCallback(
         (delta: number) => {

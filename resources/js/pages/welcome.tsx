@@ -20,7 +20,6 @@ import {
     Swords,
     ShieldPlus,
     Menu,
-    X,
     LogIn
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -413,14 +412,6 @@ export default function Welcome() {
                                         </Button>
                                     </Link>
                                 )}
-
-                                <Button
-                                    variant="outline"
-                                    className="md:text-1xl transform cursor-pointer rounded-2xl border-2 border-purple-400 bg-white/10 px-8 py-4 font-jersey text-lg text-purple-300 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-purple-600 hover:text-white"
-                                >
-                                    <Target className="mr-3 h-6 w-6" />
-                                    Ver Demo
-                                </Button>
                             </div>
 
                             {/* Indicador de scroll */}

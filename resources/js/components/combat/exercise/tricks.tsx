@@ -1,31 +1,32 @@
 import { useScreen } from '@/providers/screen-provider';
 import Exercise, { Option } from '@/types/exercise';
 import { extend } from '@pixi/react';
-import { Assets, Container, Point, Sprite, Text, Texture } from 'pixi.js';
+import axios from 'axios';
+import { Container, Point, Sprite, Text, Texture, Graphics } from 'pixi.js';
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
+import 'katex/dist/katex.min.css';
 
-extend({ Container, Sprite, Text });
+extend({ Container, Sprite, Text, Graphics });
 
 interface TricksProps {
+    texture: Texture;
     onClose?: () => void;
     exercise: Exercise;
-    selectedOption?: Option | null; // ← Cambiar de Option a Option | null
+    selectedOption?: Option | null;
 }
 
 function easeOutCubic(t: number) {
     return 1 - Math.pow(1 - t, 3);
 }
 
-export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ onClose, exercise, selectedOption }, ref) => {
-    const assetBg = '/assets/ui/tricks-ui.png';
-    const [bgTexture, setBgTexture] = useState<Texture | null>(null);
+export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ texture, onClose, exercise, selectedOption }, ref) => {
+    const [IAresponse, setIAresponse] = useState<string>(`Cargando sugerencias...`);
+    const [scrollY, setScrollY] = useState(0);
+    const textContainerRef = useRef<Container>(null);
+    const maskRef = useRef<Graphics>(null);
     const containerRef = useRef<Container>(null);
     const {scale, screenSize} = useScreen();
-
-    // Geometría del panel
     const panelHeight = screenSize.width / 3 + 100;
-
-    // Refs de animación
     const isClosingRef = useRef(false);
     const targetLocalPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
     const offscreenLocalPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -40,11 +41,9 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
         const c = containerRef.current;
         if (!c || !c.parent) return;
 
-        // Posición objetivo en coordenadas globales y luego a locales del parent
         const globalTarget = new Point(0, screenSize.height / 3);
         const localTarget = c.parent.toLocal(globalTarget);
 
-        // Posición inicial/final: completamente por debajo de la pantalla
         const globalOffscreen = new Point(0, screenSize.height + panelHeight);
         const localOffscreen = c.parent.toLocal(globalOffscreen);
 
@@ -81,28 +80,20 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
         rafRef.current = requestAnimationFrame(tick);
     };
 
-    useEffect(() => {
-        let cancelled = false;
-        Assets.load<Texture>(assetBg).then(() => {
-            if (!cancelled) setBgTexture(Assets.get(assetBg));
-        });
-        return () => {
-            cancelled = true;
-        };
-    }, []);
-
-    // Posicionar y animar entrada
     useLayoutEffect(() => {
         computePositions();
 
-        // Colocar fuera de pantalla y deslizar hacia arriba
         const off = offscreenLocalPos.current;
         const tgt = targetLocalPos.current;
         setContainerPos(off.x, off.y);
         animateY(off.y, tgt.y);
 
+        // Configurar la máscara
+        if (textContainerRef.current && maskRef.current) {
+            textContainerRef.current.mask = maskRef.current;
+        }
+
         const onResize = () => {
-            // Recalcular posiciones; si está cerrando, permanece offscreen; si no, target
             computePositions();
             const pos = isClosingRef.current ? offscreenLocalPos.current : targetLocalPos.current;
             setContainerPos(pos.x, pos.y);
@@ -113,7 +104,6 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
             stopRAF();
             window.removeEventListener('resize', onResize);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleClose = () => {
@@ -134,14 +124,39 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
         });
     };
 
+    const handleMessage = async () => {
+        const messageToSend = "Para la siguiente pregunta el usuario necesita ayuda, solo puede escribirte una vez, por lo que response directamente su pregunta:" +
+        (selectedOption 
+            ? "Necesito resolver este problema de la manera correcta: " + exercise.operation + ". He intentado la siguiente opcion: " + selectedOption.result + ", pero es incorrecta. ¿Puedes ayudarme a entender por qué y cómo solucionarlo?"
+            : "Necesito que me guies para resolver este problema: " + exercise.operation + ". ¿Puedes ayudarme a entender cómo solucionarlo?, pero no me des la respuesta directamente."
+        );
+
+        const response = await axios.post('/chatbot/message', {
+            message: messageToSend,
+        });
+
+        setIAresponse(response.data.data);
+    }
+
+    useEffect(() => {
+        handleMessage();
+    }, [exercise.operation, selectedOption]);
+
     useImperativeHandle(ref, () => ({
         triggerClose: handleClose,
     }));
 
+    const maxScrollHeight = panelHeight - 180; // Altura visible del texto
+    const [contentHeight, setContentHeight] = useState(0);
+
+    const handleWheel = (event: any) => {
+        const delta = event.deltaY;
+        const maxScroll = Math.max(0, contentHeight - maxScrollHeight);
+        setScrollY(prev => Math.max(0, Math.min(prev + delta * 0.5, maxScroll)));
+    };
+
     return (
         <pixiContainer ref={containerRef} zIndex={3} interactive={true}>
-            {bgTexture && <pixiSprite texture={bgTexture} x={0} y={screenSize.height / 3 - 100} width={screenSize.width} height={panelHeight} />}
-
             <pixiText
                 text="↓"
                 cursor="pointer"
@@ -150,7 +165,7 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
                 onTap={handleClose}
                 x={screenSize.width / 2}
                 y={screenSize.height / 3 - 90}
-                zIndex={10000}
+                zIndex={2}
                 style={{
                     fontSize: 32 * scale,
                     fill: 0xffffff,
@@ -160,9 +175,10 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
             />
 
             <pixiText
-                text={selectedOption ? `La opcion "${selectedOption.result}" es incorrecta:` : 'Select an option to see tricks.'}
+                text={selectedOption ? `La opcion "${selectedOption.result}" es incorrecta:` : '¿Como solucionarlo?'}
                 x={25 * scale}
                 y={screenSize.height / 3 - 60}
+                zIndex={2}
                 style={{
                     fontSize: 24 * scale,
                     fill: 0xffffff,
@@ -172,19 +188,30 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ o
             />
 
             <pixiText
-                text={
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-                }
+                text={IAresponse}
                 x={25 * scale}
-                y={screenSize.height / 3 - 20}
+                y={screenSize.height / 3 - 30}
+                zIndex={2}
                 style={{
                     fontSize: 18 * scale,
                     fill: 0xffffff,
                     fontFamily: 'Arial',
                     wordWrap: true,
-                    wordWrapWidth: screenSize.width - 40,
+                    wordWrapWidth: screenSize.width - 50 * scale,
                 }}
             />
+
+
+            {texture && 
+                <pixiSprite 
+                    texture={texture} 
+                    x={0} 
+                    y={screenSize.height / 3 - 100} 
+                    width={screenSize.width} 
+                    height={panelHeight}
+                    zIndex={1}
+                />
+            }
         </pixiContainer>
     );
 });

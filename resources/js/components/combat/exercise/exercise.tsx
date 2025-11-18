@@ -21,6 +21,7 @@ interface IExerciseProps {
 }
 
 const assetSword = '/assets/sword.png';
+const assetTrick = '/assets/ui/tricks-ui.png';
 
 export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack }: IExerciseProps) => {
     const bgAsset = '/assets/ui/exercise-ui.png';
@@ -28,6 +29,7 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
     const [swordTexture, setSwordTexture] = useState<Texture | null>(null);
     const [bgTexture, setBgTexture] = useState<Texture | null>(null);
     const [answersTexture, setAnswersTexture] = useState<Texture | null>(null);
+    const [trickTexture, setTrickTexture] = useState<Texture>(Texture.EMPTY);
     const [isAnswerIsDragging, setIsAnswerIsDragging] = useState(false);
     const [isOverTarget, setIsOverTarget] = useState(false);
     const [isShowingTricks, setIsShowingTricks] = useState(false);
@@ -181,7 +183,6 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
         [playerAnswers.length, height],
     );
 
-    // Click en flechas: desplaza una fila y hace clamp a los límites
     const scrollByArrow = useCallback(
         (direction: 'up' | 'down') => {
             setScrollOffset((prev) => {
@@ -288,12 +289,22 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                 console.error('Failed to load answers texture:', err);
             });
 
+        Assets.load<Texture>(assetTrick)
+            .then((tex) => {
+                if (!cancelled) {
+                    setTrickTexture(tex);
+                }
+            })
+            .catch((err) => {
+                console.error('Failed to load tricks texture:', err);
+            });
+
         return () => {
             cancelled = true;
             bgTexture?.destroy();
             answersTexture?.destroy();
         };
-    }, [bgAsset]);
+    }, [bgAsset, assetTrick]);
 
     useEffect(() => {
         Assets.load<Texture>(assetSword).then((texture) => {
@@ -506,7 +517,7 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                 />
             )}
             {isShowingTricks && (
-                <Tricks ref={tricksRef} onClose={() => setIsShowingTricks(false)} exercise={exercise} selectedOption={selectedWrongOption} />
+                <Tricks ref={tricksRef} texture={trickTexture} onClose={() => setIsShowingTricks(false)} exercise={exercise} selectedOption={selectedWrongOption} />
             )}
         </pixiContainer>
     );

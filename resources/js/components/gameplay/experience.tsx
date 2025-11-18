@@ -99,7 +99,7 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
         (delta: number) => {
             const sprite = spriteRef.current;
             const camera = cameraRef.current;
-            if (!sprite || !camera) return;
+            if (!sprite || !camera || !stageTexture) return;
 
             const controlPressed = keys[ALLOWED_KEYS[4]];
             const canRun = runTimeLeft > 0 && cooldownLeft <= 0;
@@ -213,11 +213,25 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
                 sprite.y = newY;
             }
 
-            camera.x = screenSize.width / 2 - sprite.x;
-            camera.y = screenSize.height / 2 - sprite.y;
+            // Calcular posición deseada de la cámara
+            let desiredCameraX = screenSize.width / 2 - sprite.x;
+            let desiredCameraY = screenSize.height / 2 - sprite.y;
 
+            // Dimensiones del fondo escalado
+            const mapWidth = stageTexture.width * MAP_SCALE;
+            const mapHeight = stageTexture.height * MAP_SCALE;
+
+            // Límites de la cámara para que no se salga del fondo
+            const minCameraX = screenSize.width - mapWidth;
+            const maxCameraX = 0;
+            const minCameraY = screenSize.height - mapHeight;
+            const maxCameraY = 0;
+
+            // Aplicar límites
+            camera.x = Math.max(minCameraX, Math.min(maxCameraX, desiredCameraX));
+            camera.y = Math.max(minCameraY, Math.min(maxCameraY, desiredCameraY));
         },
-        [keys, polygonPoints, isRunning, runTimeLeft, cooldownLeft, enemies, screenSize],
+        [keys, polygonPoints, isRunning, runTimeLeft, cooldownLeft, enemies, screenSize, stageTexture],
     );
 
     const updateUserProfileLevel = async (newTotalXp: number) => {
@@ -490,30 +504,30 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
                         ))}
                         {stageTexture && <pixiSprite texture={stageTexture} x={0} y={0} zIndex={0} scale={MAP_SCALE} />}
                         {nearPortal && !inCombat && enemies.length === 0 && (
-                    <pixiText
-                        text="Presiona F para continuar"
-                        x={centroid.x + 170}
-                        y={centroid.y + 150}
-                        style={{
-                            fontSize: 32,
-                            fill: 0xffffff,
-                            fontFamily: 'Jersey 10',
-                            stroke: 0x000000,
-                        }}
-                    />
-                )}
-                {portalTexture && enemies.length === 0 && (
-                    <pixiSprite
-                        texture={portalTexture}
-                        x={centroid.x + 300}
-                        y={centroid.y + 300}
-                        anchor={{ x: 0.5, y: 0.5 }}
-                        scale={0.5}
-                        zIndex={1}
-                        height={220 * scale}
-                        width={220 * scale}
-                    />
-                )}
+                            <pixiText
+                                text="Presiona F para continuar"
+                                x={centroid.x + 170}
+                                y={centroid.y + 150}
+                                style={{
+                                    fontSize: 32,
+                                    fill: 0xffffff,
+                                    fontFamily: 'Jersey 10',
+                                    stroke: 0x000000,
+                                }}
+                            />
+                        )}
+                        {portalTexture && enemies.length === 0 && (
+                            <pixiSprite
+                                texture={portalTexture}
+                                x={centroid.x + 300}
+                                y={centroid.y + 300}
+                                anchor={{ x: 0.5, y: 0.5 }}
+                                scale={0.5}
+                                zIndex={1}
+                                height={220 * scale}
+                                width={220 * scale}
+                            />
+                        )}
                     </pixiContainer>
                     <PortalUI 
                         canvasSize={screenSize}

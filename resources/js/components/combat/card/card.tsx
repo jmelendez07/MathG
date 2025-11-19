@@ -1,8 +1,8 @@
 import { useScreen } from '@/providers/screen-provider';
 import ICard from '@/types/card';
 import { extend, useTick } from '@pixi/react';
-import { Assets, ColorMatrixFilter, Container, Graphics, Sprite, Texture } from 'pixi.js';
-import { useEffect, useMemo, useState } from 'react';
+import { Assets, ColorMatrixFilter, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 extend({ Container, Sprite, Graphics });
 
@@ -45,6 +45,9 @@ export const Card = ({
     const [currentTint, setCurrentTint] = useState(0x808080);
     const targetAlpha = isDisabled ? 0.6 : isHovered || isPointerDown ? 1.0 : 0.8;
     const targetTint = isDisabled ? 0xffffff : isHovered || isPointerDown ? 0xffffff : 0x808080;
+    const sizeOperationRef = useRef<Text | null>(null);
+    const [sizeOperationList, setSizeOperationList] = useState<number[]>([]);
+    const [operationText, setOperationText] = useState(card.exercise.operation);
 
     const { scale } = useScreen();
 
@@ -173,7 +176,13 @@ export const Card = ({
         Assets.load<Texture>(card1Asset).then((texture) => {
             setCard1Texture(texture);
         });
-    }, []);
+
+        // Medir el ancho después del siguiente render
+        setTimeout(() => {
+            const width = sizeOperationRef.current?.getBounds().width || 0;
+            setSizeOperationList((prev) => [...prev, width]);
+        }, 0);
+    }, [card.exercise.operation, card1Asset]);
 
     useEffect(() => {
         if (!isPointerDown && isTargetAssigned) {
@@ -181,6 +190,21 @@ export const Card = ({
             onSelectedCard(card);
         }
     }, [isPointerDown]);
+
+    useEffect(() => {
+        sizeOperationList.map((size, index) => {
+            if (size > 90 * cardDimensions.scale) {
+                const text = card.exercise.operation;
+                // Buscar "f(x) = " o "F´(x) = " y agregar salto de línea
+                const formattedText = text.replace(/(f['´]?\s*\([^)]+\)\s*=\s*)/i, '$1\n');
+                setOperationText(formattedText);
+            }
+        });
+    }, [sizeOperationList, card.exercise.operation, cardDimensions.scale]);
+
+    useEffect(() => {
+        setOperationText(card.exercise.operation);
+    }, [card.exercise.operation]);
 
     // Calcular posiciones de texto relativas al tamaño de la carta
     const centerX = currentCardPosition.x + cardDimensions.width / 2;
@@ -209,6 +233,7 @@ export const Card = ({
             {/* Costo de energía - esquina superior izquierda */}
             <pixiContainer x={centerX} y={centerY} rotation={cardRotation}>
                 <pixiText
+                    ref={sizeOperationRef}
                     text={card.energy_cost}
                     x={-cardDimensions.width * 0.37} // Proporcional al ancho
                     y={-cardDimensions.height * 0.43} // Proporcional al alto
@@ -226,16 +251,20 @@ export const Card = ({
             {/* Operación - centro de la carta */}
             <pixiContainer x={centerX} y={centerY} rotation={cardRotation}>
                 <pixiText
-                    text={card.exercise.operation}
-                    x={0}
-                    y={cardDimensions.height * 0.27} // Proporcional al alto
-                    anchor={0.5}
+                    ref={sizeOperationRef}
+                    text={operationText}
+                    x={0} // Proporcional al ancho
+                    y={cardDimensions.height * 0.2} // Proporcional al alto
+                    anchor={{ x: 0.5, y: 0.5 }}
                     zIndex={1}
                     style={{
                         fontSize: 20 * cardDimensions.scale,
                         fill: 0xffffff,
                         fontFamily: 'Arial',
                         fontWeight: 'bold',
+                        align: 'center',
+                        wordWrap: true,
+                        wordWrapWidth: cardDimensions.width * 0.8,
                     }}
                 />
             </pixiContainer>

@@ -39,6 +39,17 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
     const [scrollOffset, setScrollOffset] = useState(0);
     const [playerAnswers, setPlayerAnswers] = useState<{ result: string; is_correct: boolean }[]>([]);
     const [selectedWrongOption, setSelectedWrongOption] = useState<Option | null>(null);
+    const [maxOptionWidth, setMaxOptionWidth] = useState<number>(0);
+
+    const textMeasurementsRef = useRef<Map<number, number>>(new Map());
+
+    const handleTextMeasured = useCallback((measurement: { id: number; width: number }) => {
+        textMeasurementsRef.current.set(measurement.id, measurement.width);
+
+        // Calcular el máximo width
+        const max = Math.max(...Array.from(textMeasurementsRef.current.values()));
+        setMaxOptionWidth(max);
+    }, []);
 
     const { scale, screenSize } = useScreen();
 
@@ -46,7 +57,25 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
     const height = screenSize.height * 0.8;
     const containerX = screenSize.width / 2 - width / 2;
     const containerY = screenSize.height / 2 - height / 2;
-    const answersWidth = screenSize.width * 0.45;
+
+    // Calcular el ancho del contenedor de respuestas basándose en las opciones
+    const calculateAnswersWidth = () => {
+        if (maxOptionWidth > 0 && exercise?.steps?.[currentStep]?.options) {
+            const numOptions = exercise.steps[currentStep].options.length;
+            const internalPadding = scale; // Debe coincidir con answer.tsx
+            const boxWidth = maxOptionWidth + internalPadding;
+            const spacing = 10 * scale; // Espacio entre cajas
+            const containerPadding = 20 * scale; // Padding del contenedor
+
+            // Ancho total: padding inicial + (N cajas * ancho) + ((N-1) espacios) + padding final
+            const totalWidth = containerPadding * 2 + numOptions * boxWidth + (numOptions - 1) * spacing;
+
+            return totalWidth;
+        }
+        return screenSize.width * 0.45; // Valor por defecto
+    };
+
+    const answersWidth = calculateAnswersWidth();
     const centerXRelativeToContainer = (width - answersWidth) / 2;
     const exerciseContainerX = screenSize.width / 2 - (screenSize.width * 0.5) / 2;
     const exerciseContainerY = screenSize.height / 2 - (screenSize.height * 0.8) / 2;
@@ -387,9 +416,9 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
 
             <pixiText
                 text={exercise?.operation || ''}
-                x={100 * scale}
+                x={50 * scale}
                 y={50 * scale}
-                anchor={0.5}
+                anchor={{ x: 0, y: 0.5 }}
                 zIndex={1}
                 style={{
                     fontSize: 24 * scale,
@@ -451,9 +480,9 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                             />
                             <pixiText
                                 text={step.result}
-                                x={100 * scale}
+                                x={50 * scale}
                                 y={answerY + answerHeight / 2}
-                                anchor={0.5}
+                                anchor={{ x: 0, y: 0.5 }}
                                 zIndex={1}
                                 style={{ fontSize: 24 * scale, fill: 0xffffff, fontFamily: 'Arial' }}
                             />
@@ -466,40 +495,45 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                     <pixiSprite texture={answersTexture} width={answersWidth} height={screenSize.height * 0.2} />
                     {exercise &&
                         exercise.steps &&
-                        exercise.steps[currentStep].options.map((opt, index) => {
-                            const padding = 20 * scale; // Padding de 20 píxeles
-                            const availableWidth = answersWidth - padding * 2;
-                            const availableHeight = screenSize.height * 0.2 - padding * 2;
-                            const answerWidth = availableWidth / exercise.steps![currentStep].options.length;
-                            const answerHeight = availableHeight;
-                            const xPosition = padding + index * answerWidth;
-                            const yPosition = padding;
+                        (() => {
+                            const containerPadding = 20 * scale;
+                            const availableHeight = screenSize.height * 0.2 - containerPadding * 2;
 
-                            return (
-                                <Answer
-                                    key={opt.id}
-                                    // text={opt.text}
-                                    // isCorrect={opt.is_correct}
-                                    option={opt}
-                                    x={xPosition}
-                                    y={yPosition}
-                                    width={answerWidth}
-                                    height={answerHeight}
-                                    containerX={containerX}
-                                    containerY={containerY}
-                                    onIsDraggingChange={setIsAnswerIsDragging}
-                                    onAnswerPositionChange={setAnswerSelectedPosition}
-                                    onDragStart={handleAnswerDragStart}
-                                    onDragEnd={handleAnswerDragEnd}
-                                />
-                            );
-                        })}
+                            const internalPadding = scale; // Debe coincidir con answer.tsx
+                            const boxWidth = maxOptionWidth > 0 ? maxOptionWidth + internalPadding : 100 * scale;
+                            const spacing = 10 * scale; // Espacio entre cajas
+
+                            return exercise.steps[currentStep].options.map((opt, index) => {
+                                const xPosition = containerPadding + index * (boxWidth + spacing);
+                                const yPosition = containerPadding;
+                                const answerHeight = availableHeight;
+
+                                return (
+                                    <Answer
+                                        key={opt.id}
+                                        option={opt}
+                                        x={xPosition}
+                                        y={yPosition}
+                                        width={boxWidth}
+                                        height={answerHeight}
+                                        containerX={containerX}
+                                        containerY={containerY}
+                                        maxWidth={maxOptionWidth}
+                                        onIsDraggingChange={setIsAnswerIsDragging}
+                                        onAnswerPositionChange={setAnswerSelectedPosition}
+                                        onDragStart={handleAnswerDragStart}
+                                        onDragEnd={handleAnswerDragEnd}
+                                        onTextMeasured={handleTextMeasured}
+                                    />
+                                );
+                            });
+                        })()}
                     {isAnswerIsDragging && (
                         <pixiGraphics
                             ref={answersGraphicsRef}
                             draw={(g) => {
                                 g.clear();
-                                g.rect(0, 0, answersWidth, window.innerHeight * 0.2);
+                                g.rect(0, 0, answersWidth, screenSize.height * 0.2);
                                 g.stroke({ color: isCancellingAnswer ? 0x00ff00 : 0x0000ff, width: 5 });
                             }}
                         />
@@ -517,7 +551,13 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                 />
             )}
             {isShowingTricks && (
-                <Tricks ref={tricksRef} texture={trickTexture} onClose={() => setIsShowingTricks(false)} exercise={exercise} selectedOption={selectedWrongOption} />
+                <Tricks
+                    ref={tricksRef}
+                    texture={trickTexture}
+                    onClose={() => setIsShowingTricks(false)}
+                    exercise={exercise}
+                    selectedOption={selectedWrongOption}
+                />
             )}
         </pixiContainer>
     );

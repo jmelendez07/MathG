@@ -160,7 +160,6 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                     if (enemy.id === selectedEnemy.id) {
                         if (enemy.health - selectedCard.stats <= 0) {
                             setXpGained((prev) => prev + (enemy.type?.reward_xp || 0));
-                            console.log('Total XP gained:', xpGained + (enemy.type?.reward_xp || 0));
                         }
                         return { ...enemy, health: enemy.health - selectedCard.stats };
                     } else {
@@ -240,15 +239,8 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
 
     useEffect(() => {
         let cancelled = false;
-
-        console.log('Loading combat background texture from:', spriteBgCombat);
         Assets.load<Texture>(spriteBgCombat).then((tex) => {
             if (!cancelled) {
-                console.log('✅ Combat texture loaded successfully!');
-                console.log('Texture width:', tex.width);
-                console.log('Texture height:', tex.height);
-                console.log('Texture source valid:', tex.source ? 'YES' : 'NO');
-                console.log('Texture:', tex);
                 setCombatTexture(tex);
             }
         });
@@ -272,11 +264,9 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
 
         if (allEnemiesDead) {
             combatEndedRef.current = true; // ✅ Marcar como finalizado
-            console.log('🎉 Victoria! XP ganado:', xpGained);
             finish(true, xpGained);
         } else if (allHeroesDead) {
             combatEndedRef.current = true; // ✅ Marcar como finalizado
-            console.log('💀 Derrota!');
             lose();
         }
     }, [activeTeam, enemies, xpGained]);
@@ -286,7 +276,6 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
             const hero = activeTeam.find((h) => h.id === heroId);
             if (hero) {
                 setCurrentHeroInCombatId(hero.id);
-                console.log(`Héroe actual en combate cambiado a: ${hero.name}`);
             }
         }
     };
@@ -303,17 +292,6 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                 />
             )}
 
-            {/* {bgCombatSprite && combatTexture && (
-                <pixiSprite
-                    texture={bgCombatSprite.texture}
-                    width={screenSize.width} 
-                    height={screenSize.height} 
-                    x={0}
-                    y={0}
-                    anchor={0} 
-                />
-            )} */}
-
             <CombatUI teamHeroes={activeTeam} currentTurn={turn + 1} currentStage={currentStage} />
 
             {/* Renderizar héroes con animaciones */}
@@ -327,7 +305,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                 const spacing = 120 * scale;
 
                 const isAttackSprite = isAttackingAnimation && attackingHeroIndex === index;
-                const spriteWidth = isAttackSprite ? 384 * scale : 168 * scale;
+                const spriteWidth = isAttackSprite ? 500 * scale : 168 * scale;
                 const normalWidth = 128 * scale;
 
                 const adjustedX = isAttackSprite ? baseX - (spriteWidth - normalWidth) / 2 : baseX;

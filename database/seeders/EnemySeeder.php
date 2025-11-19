@@ -26,8 +26,8 @@ class EnemySeeder extends Seeder
             // ],
             [
                 'name' => 'Orc',
-                'health' => 10,
-                'basic_attack' => 15,
+                'health' => 1000,
+                'basic_attack' => 11,
                 'spritesheet' => asset('assets/default_enemies/enemy-2.png'),
             ],
             [

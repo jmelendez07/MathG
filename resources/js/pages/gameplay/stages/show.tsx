@@ -7,7 +7,6 @@ import Enemy from '@/types/enemy';
 import Hero from '@/types/hero';
 import { Stage as IStage } from '@/types/planet';
 import { Application, extend } from '@pixi/react';
-import { console } from 'inspector';
 import { Container, Graphics, Sprite, Text } from 'pixi.js';
 import { useEffect, useState } from 'react';
 

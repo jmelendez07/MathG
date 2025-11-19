@@ -63,10 +63,10 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                     <pixiSprite
                         interactive={true}
                         texture={enemySprite.texture}
-                        x={enemy.combat_position?.x || 0}
-                        y={enemy.combat_position?.y || 0}
-                        width={128 * scale}
-                        height={128 * scale}
+                        x={(enemy.combat_position?.x || 0)}
+                        y={(enemy.combat_position?.y || 0)}
+                        width={168 * scale}
+                        height={168 * scale}
                         onPointerOver={handlePointerOver}
                         onPointerOut={handlePointerOut}
                     />
@@ -74,10 +74,10 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                     {swordTexture && (
                         <pixiSprite
                             texture={swordTexture}
-                            x={(enemy.combat_position?.x || 0) + 80 * scale}
-                            y={(enemy.combat_position?.y || 0) - 50 * scale + floatOffset}
-                            width={40 * scale}
-                            height={40 * scale}
+                            x={(enemy.combat_position?.x || 0) + 90 * scale}
+                            y={(enemy.combat_position?.y || 0) - 40 * scale + floatOffset}
+                            width={60 * scale}
+                            height={50 * scale}
                             zIndex={10}
                         />
                     )}
@@ -85,12 +85,13 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                     <pixiText
                         text={enemy.basic_attack}
                         anchor={0.5}
-                        x={(enemy.combat_position?.x || 0) + 70 * scale}
-                        y={(enemy.combat_position?.y || 0) - 25 * scale + floatOffset}
+                        x={(enemy.combat_position?.x || 0) + 80 * scale}
+                        y={(enemy.combat_position?.y || 0) - 15 * scale + floatOffset}
                         zIndex={10}
+                        resolution={2}
                         style={{
                             fontFamily: 'Jersey 10',
-                            fontSize: 20 * scale,
+                            fontSize: 34 * scale,
                             fill: 0xffffff,
                             fontWeight: 'bold',
                             stroke: { color: 0x000000, width: 2 * scale },
@@ -101,11 +102,11 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                         <pixiText
                             text={enemy.name}
                             anchor={0.5}
-                            x={(enemy.combat_position?.x || 0) + 64 * scale}
-                            y={enemy.combat_position?.y || 0}
+                            x={(enemy.combat_position?.x || 0) + 84 * scale}
+                            y={(enemy.combat_position?.y || 0) - 60 * scale + floatOffset}
                             style={{
-                                fontFamily: 'Arial',
-                                fontSize: 20 * scale,
+                                fontFamily: 'Jersey 10',
+                                fontSize: 30 * scale,
                                 fill: 0xffffff,
                                 fontWeight: 'bold',
                                 stroke: { color: 0x000000, width: 2 * scale },
@@ -114,8 +115,8 @@ export const Enemy = ({ enemy }: IEnemyProps) => {
                     )}
 
                     <pixiContainer
-                        x={(enemy.combat_position?.x || 0) - 11 * scale}
-                        y={(enemy.combat_position?.y || 0) + 140 * scale}
+                        x={(enemy.combat_position?.x || 0) + 20 * scale}
+                        y={(enemy.combat_position?.y || 0) + 180 * scale}
                         zIndex={5}
                         scale={scale}
                     >

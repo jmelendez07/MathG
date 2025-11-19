@@ -11,7 +11,7 @@ class ChatBotController extends Controller
     public function message(Request $request)
     {
         $request->validate([
-            'message' => 'required|string|max:200',
+            'message' => 'required|string|max:400',
         ]);
 
         $systemPrompt = "

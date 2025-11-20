@@ -356,6 +356,7 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
     };
 
     return (
+        <>
         <pixiContainer
             ref={exerciseContainerRef}
             x={exerciseContainerX}
@@ -491,7 +492,7 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                 );
             })}
             {answersTexture && (
-                <pixiContainer x={centerXRelativeToContainer} y={570 * scale} width={answersWidth} height={screenSize.height * 0.2} zIndex={1}>
+                <pixiContainer x={centerXRelativeToContainer} y={screenSize.height * 0.65} width={answersWidth} height={screenSize.height * 0.2} zIndex={1}>
                     <pixiSprite texture={answersTexture} width={answersWidth} height={screenSize.height * 0.2} />
                     {exercise &&
                         exercise.steps &&
@@ -550,7 +551,8 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                     }}
                 />
             )}
-            {isShowingTricks && (
+        </pixiContainer>
+        {isShowingTricks && (
                 <Tricks
                     ref={tricksRef}
                     texture={trickTexture}
@@ -559,6 +561,6 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                     selectedOption={selectedWrongOption}
                 />
             )}
-        </pixiContainer>
+        </>
     );
 };

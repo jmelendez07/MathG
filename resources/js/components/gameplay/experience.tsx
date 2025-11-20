@@ -17,6 +17,7 @@ import { extend, useTick } from '@pixi/react';
 import { Assets, Container, Sprite, Texture, Ticker } from 'pixi.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PortalUI } from '../ui/pixi/portal';
+import LoadingCombat from './loading-combat';
 
 interface ExperienceProps {
     stage: Stage;
@@ -57,6 +58,8 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
     const { scale, screenSize } = useScreen();
     const [nearPortal, setNearPortal] = useState(false);
     const [isPortalUIVisible, setIsPortalUIVisible] = useState(false);
+    const [combatLoaded, setCombatLoaded] = useState<boolean>(false);
+    const [showCombat, setShowCombat] = useState<boolean>(false);
 
     const polygonPoints: [number, number][] = stage.points
         .map((p) => [p.x, p.y] as [number, number])
@@ -338,6 +341,7 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
                 setInCombat(true);
                 setCombatEnemy(nearbyEnemy);
                 setNearbyEnemy(null);
+                setCombatLoaded(false); // Resetear para mostrar loading
             }
 
             if (ALLOWED_KEYS.includes(event.code)) {
@@ -435,6 +439,17 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
         };
     }, [nearbyEnemy, inCombat, teamHeroes, changeCurrentHero]);
 
+    // Esperar a que termine la animación de LoadingCombat antes de mostrar Combat
+    useEffect(() => {
+        if (combatLoaded) {
+            // Esperar 1 segundo (duración de la animación de salida)
+            const timer = setTimeout(() => {
+                setShowCombat(true);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [combatLoaded]);
+
     useEffect(() => {
         //chequear proximidad con el portal
         if (
@@ -468,8 +483,19 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
 
     return (
         <pixiContainer visible={visible}>
-            { (inCombat && combatEnemy) ? (
+            {(inCombat && combatEnemy) && (
+                <LoadingCombat 
+                    teamTextures={textures} 
+                    team={teamHeroes} 
+                    enemy={combatEnemy} 
+                    enemyTexture={enemyTextures[combatEnemy.id]} 
+                    visible={!combatLoaded}
+                />
+            )}
+
+            {(inCombat && combatEnemy) ? (
                 <Combat
+                    visible={combatLoaded}
                     team={teamHeroes}
                     teamTextures={textures}
                     cards={cards}
@@ -479,9 +505,10 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
                     onSetSelectedEnemies={onSetSelectedEnemies}
                     finish={finish}
                     lose={lose}
+                    onCombatLoaded={() => setCombatLoaded(true)}
                 />
             ) : (
-                <>
+                <pixiContainer visible={!inCombat || !combatEnemy}>
                     <UI 
                         stage={stage}
                         avatarFrameTexture={avatarFrameTexture}
@@ -534,7 +561,7 @@ export const Experience = ({ stage, nextStage, initEnemies, cards, handleTexture
                         isVisible={isPortalUIVisible}
                         nextStage={nextStage}
                     />
-                </>
+                </pixiContainer>
             )}
         </pixiContainer>        
     );

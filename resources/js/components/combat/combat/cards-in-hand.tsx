@@ -1,6 +1,7 @@
 import { useScreen } from '@/providers/screen-provider';
 import ICard from '@/types/card';
 import { Card } from '../card/card';
+import { Texture } from 'pixi.js';
 
 interface ICardsInHandProps {
     cards: ICard[];
@@ -11,6 +12,7 @@ interface ICardsInHandProps {
     setSelectedCard: (card: ICard | null) => void;
     setCurrentHeroInCombatId?: (id: string | null) => void;
     isDisabled: boolean;
+    textures: { [key: string]: Texture };
 }
 
 export default function CardsInHand({
@@ -22,16 +24,14 @@ export default function CardsInHand({
     setSelectedCard,
     setCurrentHeroInCombatId,
     isDisabled,
+    textures
 }: ICardsInHandProps) {
     const { scale, screenSize } = useScreen();
-    // Calcular espaciado y posición basado en el tamaño de pantalla
     const getCardLayout = () => {
         const baseSpacing = 180 * scale;
         const baseYOffset = 320 * scale;
         const baseElevation = 40 * scale;
-
-        // Ajustar espaciado basado en la pantalla y número de cartas
-        const maxCardsWidth = screenSize.width * 0.8; // 80% del ancho de pantalla
+        const maxCardsWidth = screenSize.width * 0.8;
         const availableSpacing = maxCardsWidth / cards.length;
         const cardSpacing = Math.min(baseSpacing, availableSpacing);
 
@@ -75,6 +75,7 @@ export default function CardsInHand({
                         onSelectedCard={isDisabled ? () => {} : setSelectedCard}
                         onCurrentHeroInCombatId={setCurrentHeroInCombatId}
                         isDisabled={isDisabled}
+                        texture={textures[card.id] ? textures[card.id] : Texture.EMPTY}
                     />
                 );
             })}

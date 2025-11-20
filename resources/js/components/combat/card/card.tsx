@@ -17,6 +17,7 @@ interface ICardProps {
     initialPosition?: { x: number; y: number };
     initialRotation?: number;
     isDisabled?: boolean;
+    texture: Texture;
 }
 
 export const Card = ({
@@ -30,9 +31,8 @@ export const Card = ({
     initialPosition,
     initialRotation,
     isDisabled = false,
+    texture
 }: ICardProps) => {
-    const card1Asset = card.spritesheet;
-    const [card1Texture, setCard1Texture] = useState<Texture | null>(null);
     const [isPointerDown, setIsPointerDown] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const defaultPosition = initialPosition || { x: 500, y: 600 };
@@ -173,16 +173,11 @@ export const Card = ({
     };
 
     useEffect(() => {
-        Assets.load<Texture>(card1Asset).then((texture) => {
-            setCard1Texture(texture);
-        });
-
-        // Medir el ancho después del siguiente render
         setTimeout(() => {
             const width = sizeOperationRef.current?.getBounds().width || 0;
             setSizeOperationList((prev) => [...prev, width]);
         }, 0);
-    }, [card.exercise.operation, card1Asset]);
+    }, [card.exercise.operation]);
 
     useEffect(() => {
         if (!isPointerDown && isTargetAssigned) {
@@ -212,7 +207,7 @@ export const Card = ({
 
     return (
         <pixiContainer interactive={!isDisabled} onPointerDown={handlePointerDown} cursor={isDisabled ? 'default' : 'pointer'} zIndex={9}>
-            {card1Texture && (
+            {texture && (
                 <pixiSprite
                     width={cardDimensions.width}
                     anchor={0.5}
@@ -220,7 +215,7 @@ export const Card = ({
                     tint={currentTint}
                     interactive={!isDisabled}
                     alpha={isPointerDown && isTargetAssigned ? 0.2 : currentAlpha}
-                    texture={card1Texture}
+                    texture={texture}
                     rotation={cardRotation}
                     x={centerX}
                     y={centerY}

@@ -25,6 +25,7 @@ import { SkillEnemy } from './enemy/skillEnemy';
 extend({ Sprite, Container, Graphics });
 
 interface ICombatProps {
+    visible: boolean;
     team: Hero[];
     teamTextures: Texture[];
     enemies: IEnemy[];
@@ -34,6 +35,7 @@ interface ICombatProps {
     onSetSelectedEnemies: (enemies: IEnemy[]) => void;
     finish: (isFinished: boolean, xpGained: number) => void;
     lose: () => void;
+    onCombatLoaded: () => void;
 }
 
 interface ICombatEnemiesProps {
@@ -41,15 +43,18 @@ interface ICombatEnemiesProps {
 }
 
 const MAX_CARDS_IN_HAND = 4;
-
 const assetEnergy = '/assets/energy.png';
 const spriteBgCombat = 'https://res.cloudinary.com/dvibz13t8/image/upload/v1763503040/campo_hnuxk8_k2yehr.png';
+const assetBanner = 'https://res.cloudinary.com/dvibz13t8/image/upload/v1759335050/navbar_ibsskq.png';
 
-export const Combat = ({ team, teamTextures, enemies, cards, currentHero, currentStage, onSetSelectedEnemies, finish, lose }: ICombatProps) => {
+export const Combat = ({ visible, team, teamTextures, enemies, cards, currentHero, currentStage, onSetSelectedEnemies, finish, lose, onCombatLoaded }: ICombatProps) => {
     const [teamEnergy, setTeamEnergy] = useState(4);
     const [turn, setTurn] = useState(0);
     const [maxHeroEnergy] = useState(4);
     const [combatTexture, setCombatTexture] = useState<Texture | null>(null);
+    const [bannerTexture, setBannerTexture] = useState<Texture>(Texture.EMPTY);
+    const [avatarBannerTextures, setAvatarBannerTextures] = useState<Texture[]>([]);
+    const [cardTextures, setCardTextures] = useState<{ [key: string]: Texture }>({});
     const [isCardHeldDown, setIsCardHeldDown] = useState(false);
     const [selectedCard, setSelectedCard] = useState<ICard | null>(null);
     const [selectedEnemy, setSelectedEnemy] = useState<IEnemy | null>(null);
@@ -246,15 +251,65 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
 
     useEffect(() => {
         let cancelled = false;
-        Assets.load<Texture>(spriteBgCombat).then((tex) => {
-            if (!cancelled) {
-                setCombatTexture(tex);
-            }
-        });
 
-        Assets.load<Texture>(assetEnergy).then((text) => {
-            setEnergyTexture(text);
-        });
+        const loadAssets = async () => {
+            try {
+                if (spriteBgCombat) {
+                    Assets.add({ alias: 'stage_bg_combat', src: spriteBgCombat });
+                    const texture = await Assets.load<Texture>('stage_bg_combat');
+                    setCombatTexture(texture);
+                }
+
+                if (assetEnergy) {
+                    Assets.add({ alias: 'energy', src: assetEnergy });
+                    const texture = await Assets.load<Texture>('energy');
+                    setEnergyTexture(texture);
+                }
+
+                if (assetBanner) {
+                    Assets.add({ alias: 'banner_combat', src: assetBanner });
+                    const texture = await Assets.load<Texture>('banner_combat');
+                    setBannerTexture(texture);
+                }
+
+                const avatarsBannerLoadPromises = activeTeam.map(async (hero) => {
+                    if (hero.avatar_url) {
+                        Assets.add({ alias: `hero_banner_${hero.id}`, src: hero.avatar_url });
+                        return await Assets.load<Texture>(`hero_banner_${hero.id}`);
+                    }
+                    return Texture.EMPTY;
+                });
+                const loadedAvatarsBannerTexture = await Promise.all(avatarsBannerLoadPromises);
+                setAvatarBannerTextures(loadedAvatarsBannerTexture);
+
+                const cardsLoadPromises = cards.map(async (enemy) => {
+                    if (enemy.spritesheet) {
+                        Assets.add({ alias: `card_${enemy.id}`, src: enemy.spritesheet });
+                        const texture = await Assets.load<Texture>(`card_${enemy.id}`);
+                        return { id: enemy.id, texture };
+                    }
+                    return null;
+                });
+
+                const loadedCards = await Promise.all(cardsLoadPromises);
+                const cardTexturesMap: { [key: string]: Texture } = {};
+                loadedCards.forEach((result) => {
+                    if (result) {
+                        cardTexturesMap[result.id] = result.texture;
+                    }
+                });
+
+                setCardTextures(cardTexturesMap);
+
+                setTimeout(() => {
+                    onCombatLoaded()
+                }, 600);
+            } catch (error) {
+                
+            }
+        }
+
+        loadAssets();
 
         return () => {
             cancelled = true;
@@ -288,10 +343,10 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
     };
 
     return (
-        <pixiContainer>
+        <pixiContainer zIndex={0} visible={visible}>
             {combatTexture && combatTexture !== Texture.EMPTY && (
                 <pixiSprite
-                    texture={combatTexture} // ✅ Usar la textura completa directamente
+                    texture={combatTexture}
                     width={screenSize.width}
                     height={screenSize.height}
                     x={0}
@@ -299,7 +354,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                 />
             )}
 
-            <CombatUI teamHeroes={activeTeam} currentTurn={turn + 1} currentStage={currentStage} />
+            <CombatUI bannerTexture={bannerTexture} avatarBannerTextures={avatarBannerTextures} teamHeroes={activeTeam} currentTurn={turn + 1} currentStage={currentStage} />
 
             {/* Renderizar héroes con animaciones */}
             {activeTeam.map((hero, index) => {
@@ -343,7 +398,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                 onAnimationComplete={() => setEnemySkillActive(false)}
             />
 
-            {isCardHeldDown &&
+            {isCardHeldDown && 
                 enemies.map((enemy, index) => (
                     <pixiGraphics
                         key={`enemy-target-${enemy.id}-${index}`}
@@ -353,9 +408,9 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
                             g.stroke({ color: isTargetAssigned && selectedEnemy?.id === enemy.id ? 0x00ff00 : 0xff0000, width: 5 * scale });
                         }}
                     />
-                ))}
+                ))
+            }
 
-            {/* ✅ La barra ahora se actualiza porque currentHeroInCombat viene de activeTeam actualizado */}
             <HeroStats
                 key={`hero-stats-${currentHeroInCombat.id}`}
                 currentHp={currentHeroInCombat.current_health}
@@ -368,6 +423,7 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
 
             <CardsInHand
                 cards={cardsInHand}
+                textures={cardTextures}
                 setIsCardHeldDown={setIsCardHeldDown}
                 setCardPosition={setSelectedCardPosition}
                 isTargetAssigned={isTargetAssigned}

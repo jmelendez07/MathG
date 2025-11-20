@@ -88,7 +88,7 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
 
     // Cálculo para visibilidad de flechas
     const topBoundary = 80;
-    const bottomBoundary = 430;
+    const bottomBoundary = 550; // ← Aumentado de 430 a 550 para mostrar más pasos
     const answerItemHeight = height / 10;
     const singleStepHeight = answerItemHeight + 10;
     const totalStepsHeight = playerAnswers.length * singleStepHeight;
@@ -189,7 +189,7 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                 const newOffset = prevOffset - delta;
 
                 const topBoundary = 80 * scale;
-                const bottomBoundary = 430 * scale;
+                const bottomBoundary = 550 * scale;
                 const visibleHeight = bottomBoundary - topBoundary;
 
                 const answerHeight = height / 10;
@@ -279,7 +279,7 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
     useEffect(() => {
         if (playerAnswers.length > 0) {
             const topBoundary = 80;
-            const bottomBoundary = 430; // ← unificado con el wheel y el render
+            const bottomBoundary = 550;
             const answerHeight = height / 10;
             const singleStepHeight = answerHeight + 10;
 
@@ -293,7 +293,7 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
                 setScrollOffset(Math.min(0, newScrollOffset)); // clamp por arriba
             }
         }
-    }, [playerAnswers.length, height]); // Se ejecuta cada vez que se añade una respuesta
+    }, [playerAnswers.length, height]);
 
     useEffect(() => {
         let cancelled = false;
@@ -462,7 +462,7 @@ export const Exercise = ({ enemy, card, exercise, onClose, onIsAttacking, attack
 
                 const answerY = 21 + (index + 1) * singleStepHeight + scrollOffset;
                 const topBoundary = 80 * scale;
-                const bottomBoundary = 430 * scale;
+                const bottomBoundary = 550 * scale; // ← Aumentado de 430 a 550
 
                 const isVisible = answerY >= topBoundary && answerY + answerHeight <= bottomBoundary;
 

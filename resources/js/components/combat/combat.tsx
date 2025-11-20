@@ -20,6 +20,7 @@ import StolenCardsStack from './combat/stolen-cards-stack';
 import { Enemy } from './enemy/enemy';
 import { Exercise } from './exercise/exercise';
 import HeroStats from './hero-stats';
+import { SkillEnemy } from './enemy/skillEnemy';
 
 extend({ Sprite, Container, Graphics });
 
@@ -64,6 +65,8 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
     const [isAttackingAnimation, setIsAttackingAnimation] = useState(false);
     const [xpGained, setXpGained] = useState(0);
     const [attackingHeroIndex, setAttackingHeroIndex] = useState<number | null>(null);
+    const [enemySkillActive, setEnemySkillActive] = useState(false); // Activar animación de SkillEnemy cada turno
+    const [enemySkillTrigger, setEnemySkillTrigger] = useState(0); // Incrementa cada turno para reiniciar animación
     const { teamHeroes, updateHeroHealth } = useTeam();
     const { scale, screenSize } = useScreen();
     const combatEndedRef = useRef(false); // ✅ Prevenir múltiples llamadas
@@ -177,6 +180,10 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
     };
 
     const nextTurn = () => {
+        // Forzar reinicio de animación de skill enemigos
+        setEnemySkillActive(false); // asegurar cambio de estado
+        setEnemySkillTrigger((prev) => prev + 1);
+        setTimeout(() => setEnemySkillActive(true), 0); // reactivar inmediatamente en nuevo ciclo
         setTurn((prev) => prev + 1);
         setTeamEnergy(maxHeroEnergy);
         setStolenCards((prev) => [...prev, ...discardedCards]);
@@ -325,6 +332,16 @@ export const Combat = ({ team, teamTextures, enemies, cards, currentHero, curren
             })}
 
             <CombatEnemies enemies={enemies} />
+            {/* Animación de habilidad de enemigos al iniciar cada turno */}
+            <SkillEnemy
+                enemies={enemies}
+                heroes={activeTeam}
+                screenSize={screenSize}
+                scale={scale}
+                isActive={enemySkillActive}
+                trigger={enemySkillTrigger}
+                onAnimationComplete={() => setEnemySkillActive(false)}
+            />
 
             {isCardHeldDown &&
                 enemies.map((enemy, index) => (

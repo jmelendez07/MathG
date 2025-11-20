@@ -1,6 +1,6 @@
 import { useScreen } from '@/providers/screen-provider';
 import { Option } from '@/types/exercise';
-import { Container, FederatedPointerEvent } from 'pixi.js';
+import { Container, FederatedPointerEvent, Text } from 'pixi.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface IAnswerProps {
@@ -13,12 +13,14 @@ interface IAnswerProps {
     height: number;
     containerX: number;
     containerY: number;
+    maxWidth?: number; // ← Agregar esta prop para recibir el ancho máximo
     onDragStart?: (ref: Container | null) => void;
     onDragEnd?: (ref: Container | null, option: Option) => void;
     onDragMove?: (event: FederatedPointerEvent) => void;
     onIsDraggingChange?: (isDragging: boolean) => void;
     onAnswerPositionChange?: (position: { x: number; y: number }) => void;
     onChoosingAnswer?: (answer: { result: string; is_correct: boolean }) => void;
+    onTextMeasured?: (measurement: { id: number; width: number }) => void; // ← Agregar callback
 }
 
 export const Answer = ({
@@ -31,19 +33,22 @@ export const Answer = ({
     height,
     containerX,
     containerY,
+    maxWidth, // ← Recibir el ancho máximo
     onIsDraggingChange,
     onAnswerPositionChange,
     onDragStart,
     onDragEnd,
+    onTextMeasured, // ← Recibir el callback
 }: IAnswerProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const [answerPosition, setAnswerPosition] = useState({ x, y });
     const [isClicked, setIsClicked] = useState(false);
     const originalPosition = useRef({ x, y });
     const dragOffset = useRef({ x: 0, y: 0 });
-    const wasDragged = useRef(false); // Ref para rastrear si hubo movimiento
+    const wasDragged = useRef(false);
     const answerContainerRef = useRef<Container>(null);
-    const {scale} = useScreen();
+    const { scale } = useScreen();
+    const sizeOptionResultRef = useRef<Text | null>(null);
 
     const handlePointerMove = useCallback(
         (event: PointerEvent) => {
@@ -61,12 +66,9 @@ export const Answer = ({
         window.removeEventListener('pointerup', handlePointerUp);
 
         if (wasDragged.current) {
-            // Lógica para cuando se suelta después de arrastrar
-            console.log('Drag ended for:', option.result);
             onDragEnd?.(answerContainerRef.current, option);
         } else {
             // Lógica para un click (sin arrastre)
-            console.log('Clicked:', option.result);
             setIsClicked((prev) => !prev);
         }
 
@@ -105,12 +107,27 @@ export const Answer = ({
         }
     }, [isDragging, answerPosition, onAnswerPositionChange]);
 
+    // Agregar useEffect para medir el texto cuando se renderiza
+    useEffect(() => {
+        if (sizeOptionResultRef.current && onTextMeasured) {
+            const measuredWidth = sizeOptionResultRef.current.width;
+            onTextMeasured({
+                id: option.id,
+                width: measuredWidth,
+            });
+        }
+    }, [option.result, option.id, onTextMeasured]);
+
+    // Usar maxWidth si está disponible, sino usar un valor por defecto
+    const internalPadding = scale; // Debe coincidir con exercise.tsx
+    const boxWidth = maxWidth && maxWidth > 0 ? maxWidth + internalPadding : width;
+
     return (
         <pixiContainer ref={answerContainerRef} x={answerPosition.x} y={answerPosition.y} eventMode="static" onPointerDown={handlePointerDown}>
             <pixiGraphics
                 draw={(g) => {
                     g.clear();
-                    g.roundRect(0, 0, width - 10, height);
+                    g.roundRect(0, 0, boxWidth, height, 8 * scale);
                     g.fill({ color: 0x000000, alpha: 0.01 });
                     g.stroke({ color: isClicked ? 0x070ba6 : 0x5e5353, width: 2 });
                 }}
@@ -119,11 +136,13 @@ export const Answer = ({
                 alpha={isDragging ? 0.5 : 1}
             />
             <pixiText
+                ref={sizeOptionResultRef}
                 interactive={false}
                 text={option.result}
-                x={(width - 10) / 2}
+                x={boxWidth / 2}
                 y={height / 2}
                 anchor={0.5}
+                resolution={2}
                 style={{
                     fontSize: 20 * scale,
                     fill: 0xffffff,

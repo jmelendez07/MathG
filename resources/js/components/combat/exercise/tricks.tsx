@@ -3,8 +3,9 @@ import Exercise, { Option } from '@/types/exercise';
 import { extend } from '@pixi/react';
 import axios from 'axios';
 import { Container, Point, Sprite, Text, Texture, Graphics } from 'pixi.js';
-import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
 import 'katex/dist/katex.min.css';
+import * as PIXI from 'pixi.js';
 
 extend({ Container, Sprite, Text, Graphics });
 
@@ -21,7 +22,7 @@ function easeOutCubic(t: number) {
 
 export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ texture, onClose, exercise, selectedOption }, ref) => {
     const [IAresponse, setIAresponse] = useState<string>(`Cargando sugerencias...`);
-    const [scrollY, setScrollY] = useState(0);
+    const [scrollOffset, setScrollOffset] = useState(0);
     const textContainerRef = useRef<Container>(null);
     const maskRef = useRef<Graphics>(null);
     const containerRef = useRef<Container>(null);
@@ -146,62 +147,31 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ t
         triggerClose: handleClose,
     }));
 
-    const maxScrollHeight = panelHeight - 180; // Altura visible del texto
-    const [contentHeight, setContentHeight] = useState(0);
-
-    const handleWheel = (event: any) => {
-        const delta = event.deltaY;
-        const maxScroll = Math.max(0, contentHeight - maxScrollHeight);
-        setScrollY(prev => Math.max(0, Math.min(prev + delta * 0.5, maxScroll)));
-    };
+    const handleWheel = useCallback((e: PIXI.FederatedWheelEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const deltaY = e.deltaY - 70; // Ajusta la sensibilidad del scroll
+        
+        setScrollOffset((prevOffset) => {
+            const newOffset = prevOffset - deltaY;
+            // Limitar el scroll para que no vaya demasiado arriba o abajo
+            const maxScroll = 0;
+            const minScroll = -2000; // Ajusta según el tamaño del contenido
+            return Math.max(minScroll, Math.min(maxScroll, newOffset));
+        });
+    }, [])
 
     return (
-        <pixiContainer ref={containerRef} zIndex={3} interactive={true}>
-            <pixiText
-                text="↓"
-                cursor="pointer"
-                interactive={true}
-                onClick={handleClose}
-                onTap={handleClose}
-                x={screenSize.width / 2}
-                y={screenSize.height / 3 - 90}
-                zIndex={2}
-                style={{
-                    fontSize: 32 * scale,
-                    fill: 0xffffff,
-                    fontFamily: 'Arial',
-                    fontWeight: 'bold',
-                }}
-            />
-
-            <pixiText
-                text={selectedOption ? `La opcion "${selectedOption.result}" es incorrecta:` : '¿Como solucionarlo?'}
-                x={25 * scale}
-                y={screenSize.height / 3 - 60}
-                zIndex={2}
-                style={{
-                    fontSize: 24 * scale,
-                    fill: 0xffffff,
-                    fontFamily: 'Arial',
-                    fontWeight: 'bold',
-                }}
-            />
-
-            <pixiText
-                text={IAresponse}
-                x={25 * scale}
-                y={screenSize.height / 3 - 30}
-                zIndex={2}
-                style={{
-                    fontSize: 18 * scale,
-                    fill: 0xffffff,
-                    fontFamily: 'Arial',
-                    wordWrap: true,
-                    wordWrapWidth: screenSize.width - 50 * scale,
-                }}
-            />
-
-
+        <pixiContainer 
+            ref={containerRef} 
+            zIndex={9000} 
+            interactive={true}
+            interactiveChildren={true}
+            eventMode='static' 
+            onWheel={handleWheel}
+            sortableChildren={true}
+        >
+            {/* Sprite de fondo (sin máscara) */}
             {texture && 
                 <pixiSprite 
                     texture={texture} 
@@ -212,6 +182,68 @@ export const Tricks = forwardRef<{ triggerClose: () => void }, TricksProps>(({ t
                     zIndex={1}
                 />
             }
+
+            {/* Flecha de cerrar (sin máscara) */}
+            <pixiText
+                text="↓"
+                cursor="pointer"
+                interactive={true}
+                onClick={handleClose}
+                onTap={handleClose}
+                x={screenSize.width / 2}
+                y={screenSize.height / 3 - 90}
+                zIndex={10}
+                style={{
+                    fontSize: 32 * scale,
+                    fill: 0xffffff,
+                    fontFamily: 'Arial',
+                    fontWeight: 'bold',
+                }}
+            />
+
+            {/* Máscara para el área de texto scrolleable */}
+            <pixiGraphics
+                ref={maskRef}
+                draw={(g) => {
+                    g.clear();
+                    g.rect(
+                        25 * scale,
+                        screenSize.height / 3 - 60,
+                        screenSize.width - 50 * scale,
+                        panelHeight - 60
+                    );
+                    g.fill({ color: 0xffffff });
+                }}
+                zIndex={5}
+            />
+
+            {/* Contenedor para los textos con scroll */}
+            <pixiContainer ref={textContainerRef} zIndex={5}>
+                <pixiText
+                    text={selectedOption ? `La opcion "${selectedOption.result}" es incorrecta:` : '¿Como solucionarlo?'}
+                    x={25 * scale}
+                    y={screenSize.height / 3 - 60 + scrollOffset}
+                    style={{
+                        fontSize: 24 * scale,
+                        fill: 0xffffff,
+                        fontFamily: 'Arial',
+                        fontWeight: 'bold',
+                    }}
+                />
+
+                <pixiText
+                    text={IAresponse}
+                    x={25 * scale}
+                    y={screenSize.height / 3 - 20 + scrollOffset}
+                    style={{
+                        fontSize: 18 * scale,
+                        fill: 0xffffff,
+                        fontFamily: 'Arial',
+                        wordWrap: true,
+                        wordWrapWidth: screenSize.width - 50 * scale,
+                    }}
+                />
+            </pixiContainer>
         </pixiContainer>
     );
 });

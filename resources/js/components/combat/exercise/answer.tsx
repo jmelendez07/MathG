@@ -13,7 +13,6 @@ interface IAnswerProps {
     height: number;
     containerX: number;
     containerY: number;
-    maxWidth?: number; // ← Agregar esta prop para recibir el ancho máximo
     onDragStart?: (ref: Container | null) => void;
     onDragEnd?: (ref: Container | null, option: Option) => void;
     onDragMove?: (event: FederatedPointerEvent) => void;
@@ -33,12 +32,10 @@ export const Answer = ({
     height,
     containerX,
     containerY,
-    maxWidth, // ← Recibir el ancho máximo
     onIsDraggingChange,
     onAnswerPositionChange,
     onDragStart,
     onDragEnd,
-    onTextMeasured, // ← Recibir el callback
 }: IAnswerProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const [answerPosition, setAnswerPosition] = useState({ x, y });
@@ -107,20 +104,8 @@ export const Answer = ({
         }
     }, [isDragging, answerPosition, onAnswerPositionChange]);
 
-    // Agregar useEffect para medir el texto cuando se renderiza
-    useEffect(() => {
-        if (sizeOptionResultRef.current && onTextMeasured) {
-            const measuredWidth = sizeOptionResultRef.current.width;
-            onTextMeasured({
-                id: option.id,
-                width: measuredWidth,
-            });
-        }
-    }, [option.result, option.id, onTextMeasured]);
-
-    // Usar maxWidth si está disponible, sino usar un valor por defecto
-    const internalPadding = scale; // Debe coincidir con exercise.tsx
-    const boxWidth = maxWidth && maxWidth > 0 ? maxWidth + internalPadding : width;
+    // Usar el width proporcionado directamente desde el padre
+    const boxWidth = width;
 
     return (
         <pixiContainer ref={answerContainerRef} x={answerPosition.x} y={answerPosition.y} eventMode="static" onPointerDown={handlePointerDown}>
@@ -147,6 +132,9 @@ export const Answer = ({
                     fontSize: 20 * scale,
                     fill: 0xffffff,
                     fontFamily: 'Arial',
+                    wordWrap: true,
+                    wordWrapWidth: boxWidth - 10 * scale,
+                    align: 'center',
                 }}
             />
         </pixiContainer>

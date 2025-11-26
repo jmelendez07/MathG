@@ -45,12 +45,12 @@ class Profile extends Model
 
     public function unlockedPlanets() 
     {
-        return $this->belongsToMany(Planet::class);
+        return $this->hasMany(UserPlanet::class, 'profile_id', 'id');
     }
 
     public function unlockedStages()
     {
-        return $this->belongsToMany(Stage::class);
+        return $this->hasMany(StageUser::class, 'profile_id', 'id');
     }
 
     public static function getAverageProgress(): float
@@ -77,6 +77,6 @@ class Profile extends Model
     
     public function completedMissions()
     {
-        return $this->belongsToMany(Mission::class, 'completed_missions', 'profile_id', 'mission_id');
+        return $this->hasMany(UserMission::class, 'profile_id', 'id');
     }
 }

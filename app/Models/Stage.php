@@ -29,7 +29,7 @@ class Stage extends Model
     
     public function profiles()
     {
-        return $this->belongsToMany(Profile::class);
+        return $this->hasMany(StageUser::class, 'stage_id', 'id');
     }
 
     public function missions()

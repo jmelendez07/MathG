@@ -13,7 +13,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             JobSeeder::class,
             RoleSeeder::class,
-            UserSeeder::class,
             HeroRoleSeeder::class,
             LevelSeeder::class,
             TypeCardSeeder::class,
@@ -29,6 +28,7 @@ class DatabaseSeeder extends Seeder
             RoomSeeder::class,
             QuestionSeeder::class,
             AnswerSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

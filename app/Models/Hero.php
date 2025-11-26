@@ -36,7 +36,7 @@ class Hero extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        return $this->hasMany(HeroUser::class, 'hero_id', 'id');
     }
 
     public function cards()

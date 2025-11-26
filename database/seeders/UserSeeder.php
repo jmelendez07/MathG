@@ -18,12 +18,12 @@ class UserSeeder extends Seeder
         ]);
         $admin->assignRole('administrador');
 
-        $students = User::factory(20)->create();
+        $students = User::factory(514)->create();
         foreach ($students as $student) {
             $student->assignRole('estudiante');
         }
 
-        $teachers = User::factory(20)->create();
+        $teachers = User::factory(106)->create();
         foreach ($teachers as $teacher) {
             $teacher->assignRole('docente');
         }

@@ -27,6 +27,6 @@ class Mission extends Model
 
     public function completedMissions()
     {
-        return $this->belongsToMany(Mission::class, 'completed_missions', 'profile_id', 'mission_id');
+        return $this->hasMany(UserMission::class, 'mission_id', 'id');
     }
 }

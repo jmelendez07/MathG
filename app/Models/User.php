@@ -81,7 +81,7 @@ class User extends Authenticatable
 
     public function heroes()
     {
-        return $this->belongsToMany(Hero::class);
+        return $this->hasMany(HeroUser::class, 'user_id', 'id');
     }
 
     public function profile()
@@ -92,5 +92,10 @@ class User extends Authenticatable
     public function logs()
     {
         return $this->hasMany(UserLog::class);
+    }
+
+    public function exercises()
+    {
+        return $this->hasMany(UserExercise::class);
     }
 }

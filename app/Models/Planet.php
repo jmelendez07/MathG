@@ -51,6 +51,6 @@ class Planet extends Model
 
     public function profiles()
     {
-        return $this->belongsToMany(Profile::class);
+        return $this->hasMany(UserPlanet::class, 'planet_id', 'id');
     }
 }

@@ -49,4 +49,9 @@ class Exercise extends Model
     {
         return $this->belongsToMany(Card::class);
     }
+
+    public function userExercises()
+    {
+        return $this->hasMany(UserExercise::class);
+    }
 }

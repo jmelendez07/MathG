@@ -37,7 +37,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const powerbiUrl = import.meta.env.VITE_POWERBI_URL;
+const powerbiUrl = "https://app.powerbi.com/view?r=eyJrIjoiNjIwNTgwN2YtNTY3MS00NWY2LTgzN2MtM2Q3NDk3OTU3Njc1IiwidCI6IjlkMTJiZjNmLWU0ZjYtNDdhYi05MTJmLTFhMmYwZmM0OGFhNCIsImMiOjR9";
 
 export default function Dashboard({ users, sessions, difficulties, averageProgress, sessionsLastMonth, profilesPerPlanet }: IDashboardProps) {
     const { exportAsImage, exportDashboardCompleteImage } = useChartExport();

@@ -8,12 +8,6 @@ import { Users, Activity, BarChart3, TrendingUp, Rocket, Download, FileImage, Fi
 import { usePoll } from '@inertiajs/react';
 import { Difficulty } from '@/types/exercise';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, RadialBarChart, RadialBar, Legend, PolarAngleAxis } from 'recharts';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import useChartExport from '@/hooks/use-chart-export';
 
 interface SessionData {
@@ -42,6 +36,8 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: route('dashboard'),
     },
 ];
+
+const powerbiUrl = import.meta.env.VITE_POWERBI_URL;
 
 export default function Dashboard({ users, sessions, difficulties, averageProgress, sessionsLastMonth, profilesPerPlanet }: IDashboardProps) {
     const { exportAsImage, exportDashboardCompleteImage } = useChartExport();
@@ -415,7 +411,7 @@ export default function Dashboard({ users, sessions, difficulties, averageProgre
                         <div className="relative w-full" style={{ paddingTop: '56.25%'}}>
                             <iframe
                                 title="Power BI Report"
-                                src="https://app.powerbi.com/view?r=eyJrIjoiOTlmYWE5OGYtYWFmYi00NTI2LWE0NWQtOGVhMDZhMTU0YzhjIiwidCI6IjlkMTJiZjNmLWU0ZjYtNDdhYi05MTJmLTFhMmYwZmM0OGFhNCIsImMiOjR9"
+                                src={powerbiUrl}
                                 className="absolute top-0 left-0 w-full h-full border-0 rounded-b-lg"
                                 {...({ allowFullScreen: true } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
                             />

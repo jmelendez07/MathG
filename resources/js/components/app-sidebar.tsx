@@ -71,7 +71,7 @@ const footerNavItems: NavItem[] = [
     },
     {
         title: 'Power BI',
-        href: 'https://app.powerbi.com/view?r=eyJrIjoiOTlmYWE5OGYtYWFmYi00NTI2LWE0NWQtOGVhMDZhMTU0YzhjIiwidCI6IjlkMTJiZjNmLWU0ZjYtNDdhYi05MTJmLTFhMmYwZmM0OGFhNCIsImMiOjR9',
+        href: import.meta.env.VITE_POWERBI_URL,
         icon: ChartNoAxesColumnIncreasing
     }
 ];
